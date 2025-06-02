@@ -1,4 +1,5 @@
 import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -12,6 +13,14 @@ export const users = pgTable("users", {
   avatar: text("avatar"),
 });
 
+export const usersRelations = relations(users, ({ many }) => ({
+  trips: many(trips),
+  chatMessages: many(chatMessages),
+  supportRequests: many(supportRequests),
+  notifications: many(notifications),
+  feedbacks: many(feedbacks),
+}));
+
 export const trips = pgTable("trips", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
@@ -22,6 +31,18 @@ export const trips = pgTable("trips", {
   status: text("status").notNull().default("active"), // active, completed, cancelled
   description: text("description"),
 });
+
+export const tripsRelations = relations(trips, ({ one, many }) => ({
+  user: one(users, {
+    fields: [trips.userId],
+    references: [users.id],
+  }),
+  activities: many(activities),
+  chatMessages: many(chatMessages),
+  supportRequests: many(supportRequests),
+  notifications: many(notifications),
+  feedbacks: many(feedbacks),
+}));
 
 export const activities = pgTable("activities", {
   id: serial("id").primaryKey(),
@@ -36,6 +57,13 @@ export const activities = pgTable("activities", {
   status: text("status").notNull().default("scheduled"), // scheduled, completed, cancelled
 });
 
+export const activitiesRelations = relations(activities, ({ one }) => ({
+  trip: one(trips, {
+    fields: [activities.tripId],
+    references: [trips.id],
+  }),
+}));
+
 export const chatMessages = pgTable("chat_messages", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
@@ -46,6 +74,17 @@ export const chatMessages = pgTable("chat_messages", {
   timestamp: text("timestamp").notNull(),
   isRead: boolean("is_read").notNull().default(false),
 });
+
+export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
+  user: one(users, {
+    fields: [chatMessages.userId],
+    references: [users.id],
+  }),
+  trip: one(trips, {
+    fields: [chatMessages.tripId],
+    references: [trips.id],
+  }),
+}));
 
 export const supportRequests = pgTable("support_requests", {
   id: serial("id").primaryKey(),
@@ -61,6 +100,17 @@ export const supportRequests = pgTable("support_requests", {
   resolvedAt: text("resolved_at"),
 });
 
+export const supportRequestsRelations = relations(supportRequests, ({ one }) => ({
+  user: one(users, {
+    fields: [supportRequests.userId],
+    references: [users.id],
+  }),
+  trip: one(trips, {
+    fields: [supportRequests.tripId],
+    references: [trips.id],
+  }),
+}));
+
 export const notifications = pgTable("notifications", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
@@ -72,6 +122,17 @@ export const notifications = pgTable("notifications", {
   createdAt: text("created_at").notNull(),
 });
 
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  user: one(users, {
+    fields: [notifications.userId],
+    references: [users.id],
+  }),
+  trip: one(trips, {
+    fields: [notifications.tripId],
+    references: [trips.id],
+  }),
+}));
+
 export const feedbacks = pgTable("feedbacks", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
@@ -81,6 +142,17 @@ export const feedbacks = pgTable("feedbacks", {
   date: text("date").notNull(),
   type: text("type").notNull().default("daily"), // daily, trip, activity
 });
+
+export const feedbacksRelations = relations(feedbacks, ({ one }) => ({
+  user: one(users, {
+    fields: [feedbacks.userId],
+    references: [users.id],
+  }),
+  trip: one(trips, {
+    fields: [feedbacks.tripId],
+    references: [trips.id],
+  }),
+}));
 
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({ id: true });
