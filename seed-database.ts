@@ -1,24 +1,59 @@
 import { db } from "./server/db";
 import { users, trips, activities, chatMessages, supportRequests, notifications } from "./shared/schema";
+import { eq } from "drizzle-orm";
 
 async function seedDatabase() {
   console.log("Seeding database...");
 
-  // Create sample user
-  const [user] = await db.insert(users).values({
+  // Create sample traveler
+  const [traveler] = await db.insert(users).values({
     username: "maya_chen",
     password: "password",
     name: "Maya Chen",
     email: "maya.chen@email.com",
     phone: "+1-555-0123",
-    avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&w=150&h=150&fit=crop&crop=face"
+    avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&w=150&h=150&fit=crop&crop=face",
+    role: "traveler",
+    preferences: JSON.stringify(["cultural experiences", "local cuisine", "photography"]),
+    alertsEnabled: true
   }).returning();
 
-  console.log("Created user:", user.name);
+  // Create sample agent
+  const [agent] = await db.insert(users).values({
+    username: "sarah_anderson",
+    password: "password",
+    name: "Sarah Anderson",
+    email: "sarah@felimark.com",
+    phone: "+1-555-0124", 
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
+    role: "agent",
+    preferences: null,
+    alertsEnabled: true
+  }).returning();
+
+  // Create admin user
+  const [admin] = await db.insert(users).values({
+    username: "admin_user",
+    password: "password",
+    name: "Admin User",
+    email: "admin@felimark.com",
+    phone: "+1-555-0125",
+    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+    role: "admin",
+    preferences: null,
+    alertsEnabled: true
+  }).returning();
+
+  // Assign agent to traveler
+  await db.update(users)
+    .set({ assignedAgentId: agent.id })
+    .where(eq(users.id, traveler.id));
+
+  console.log("Created users:", traveler.name, agent.name, admin.name);
 
   // Create sample trip
   const [trip] = await db.insert(trips).values({
-    userId: user.id,
+    userId: traveler.id,
     title: "San Francisco City Explorer",
     destination: "San Francisco, CA",
     startDate: "2024-03-15",
@@ -73,7 +108,7 @@ async function seedDatabase() {
   const now = new Date();
   await db.insert(chatMessages).values([
     {
-      userId: user.id,
+      userId: traveler.id,
       tripId: trip.id,
       message: "Good morning Maya! I hope you're excited about your Golden Gate Bridge tour today. The weather looks perfect! 🌤️",
       sender: "agent",
@@ -82,7 +117,7 @@ async function seedDatabase() {
       isRead: true
     },
     {
-      userId: user.id,
+      userId: traveler.id,
       tripId: trip.id,
       message: "Hi Sarah! Yes, I'm really looking forward to it. Quick question - is there a good coffee shop near the tour starting point?",
       sender: "user",
@@ -91,7 +126,7 @@ async function seedDatabase() {
       isRead: true
     },
     {
-      userId: user.id,
+      userId: traveler.id,
       tripId: trip.id,
       message: "Absolutely! Blue Bottle Coffee is just 2 blocks away. I'll send you the exact location. They open at 9:30 AM ☕",
       sender: "agent",
@@ -106,7 +141,7 @@ async function seedDatabase() {
   // Create sample notifications
   await db.insert(notifications).values([
     {
-      userId: user.id,
+      userId: traveler.id,
       tripId: trip.id,
       title: "Weather Update",
       message: "Light winds expected during your bridge tour - perfect conditions!",
@@ -115,7 +150,7 @@ async function seedDatabase() {
       createdAt: new Date(now.getTime() - 300000).toISOString()
     },
     {
-      userId: user.id,
+      userId: traveler.id,
       tripId: trip.id,
       title: "Schedule Reminder",
       message: "Your lunch reservation is confirmed for 1:00 PM",
@@ -124,7 +159,7 @@ async function seedDatabase() {
       createdAt: new Date(now.getTime() - 240000).toISOString()
     },
     {
-      userId: user.id,
+      userId: traveler.id,
       tripId: trip.id,
       title: "Tour Reminder",
       message: "Your Golden Gate Bridge tour starts in 30 minutes",
@@ -139,7 +174,7 @@ async function seedDatabase() {
   // Create sample support requests
   await db.insert(supportRequests).values([
     {
-      userId: user.id,
+      userId: traveler.id,
       tripId: trip.id,
       type: "assistance",
       title: "Restaurant Recommendation",
@@ -151,7 +186,7 @@ async function seedDatabase() {
       resolvedAt: new Date(now.getTime() - 7000000).toISOString()
     },
     {
-      userId: user.id,
+      userId: traveler.id,
       tripId: trip.id,
       type: "assistance",
       title: "Weather Update Request",
