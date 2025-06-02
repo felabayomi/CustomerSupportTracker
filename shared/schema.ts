@@ -11,9 +11,17 @@ export const users = pgTable("users", {
   email: text("email").notNull(),
   phone: text("phone"),
   avatar: text("avatar"),
+  role: text("role").notNull().default("traveler"), // traveler, agent, admin
+  assignedAgentId: integer("assigned_agent_id"),
+  preferences: text("preferences"), // JSON string for travel preferences
+  alertsEnabled: boolean("alerts_enabled").notNull().default(true),
 });
 
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ one, many }) => ({
+  assignedAgent: one(users, {
+    fields: [users.assignedAgentId],
+    references: [users.id],
+  }),
   trips: many(trips),
   chatMessages: many(chatMessages),
   supportRequests: many(supportRequests),

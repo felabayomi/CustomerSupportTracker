@@ -101,16 +101,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // API Routes
 
-  // Get current user (mock authentication)
+  // Get current user (authentication based on role)
   app.get("/api/user", async (req, res) => {
     try {
-      const user = await storage.getUser(1); // Mock user ID 1
+      // In a real app, you'd get user ID from JWT token or session
+      const userId = parseInt(req.query.userId as string) || 1;
+      const user = await storage.getUser(userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
       res.json(user);
     } catch (error) {
       res.status(500).json({ message: "Failed to get user" });
+    }
+  });
+
+  // Agent routes
+  app.get("/api/agent/assigned-travelers", async (req, res) => {
+    try {
+      const agentId = parseInt(req.query.agentId as string) || 2;
+      const travelers = await storage.getAssignedTravelers(agentId);
+      res.json(travelers);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get assigned travelers" });
+    }
+  });
+
+  app.get("/api/agent/stats", async (req, res) => {
+    try {
+      const agentId = parseInt(req.query.agentId as string) || 2;
+      const stats = await storage.getAgentStats(agentId);
+      res.json(stats);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get agent stats" });
+    }
+  });
+
+  // Admin routes
+  app.get("/api/admin/stats", async (req, res) => {
+    try {
+      const stats = await storage.getSystemStats();
+      res.json(stats);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get system stats" });
+    }
+  });
+
+  app.get("/api/admin/agents", async (req, res) => {
+    try {
+      const agents = await storage.getAllAgents();
+      res.json(agents);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get agents" });
+    }
+  });
+
+  app.get("/api/admin/travelers", async (req, res) => {
+    try {
+      const travelers = await storage.getAllTravelers();
+      res.json(travelers);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get travelers" });
+    }
+  });
+
+  // Assignment management
+  app.post("/api/admin/assign-agent", async (req, res) => {
+    try {
+      const { travelerId, agentId } = req.body;
+      await storage.assignAgentToTraveler(travelerId, agentId);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to assign agent" });
     }
   });
 

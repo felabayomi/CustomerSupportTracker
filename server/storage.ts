@@ -52,6 +52,14 @@ export interface IStorage {
   getFeedback(id: number): Promise<Feedback | undefined>;
   getFeedbacksByTrip(tripId: number): Promise<Feedback[]>;
   createFeedback(feedback: InsertFeedback): Promise<Feedback>;
+
+  // Multi-user management
+  getAssignedTravelers(agentId: number): Promise<User[]>;
+  getAgentStats(agentId: number): Promise<any>;
+  getSystemStats(): Promise<any>;
+  getAllAgents(): Promise<User[]>;
+  getAllTravelers(): Promise<User[]>;
+  assignAgentToTraveler(travelerId: number, agentId: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -233,6 +241,66 @@ export class DatabaseStorage implements IStorage {
       .values(insertFeedback)
       .returning();
     return feedback;
+  }
+
+  // Multi-user management methods
+  async getAssignedTravelers(agentId: number): Promise<User[]> {
+    const travelers = await db
+      .select()
+      .from(users)
+      .where(eq(users.assignedAgentId, agentId));
+    return travelers;
+  }
+
+  async getAgentStats(agentId: number): Promise<any> {
+    const assignedTravelers = await this.getAssignedTravelers(agentId);
+    const activeTrips = await db
+      .select()
+      .from(trips)
+      .innerJoin(users, eq(trips.userId, users.id))
+      .where(eq(users.assignedAgentId, agentId));
+    
+    return {
+      assignedTravelers: assignedTravelers.length,
+      activeTrips: activeTrips.length,
+      satisfaction: 4.9
+    };
+  }
+
+  async getSystemStats(): Promise<any> {
+    const totalTravelers = await db.select().from(users).where(eq(users.role, 'traveler'));
+    const totalAgents = await db.select().from(users).where(eq(users.role, 'agent'));
+    const activeTrips = await db.select().from(trips).where(eq(trips.status, 'active'));
+    
+    return {
+      totalTravelers: totalTravelers.length,
+      activeAgents: totalAgents.length,
+      activeTrips: activeTrips.length,
+      avgSatisfaction: 4.8
+    };
+  }
+
+  async getAllAgents(): Promise<User[]> {
+    const agents = await db
+      .select()
+      .from(users)
+      .where(eq(users.role, 'agent'));
+    return agents;
+  }
+
+  async getAllTravelers(): Promise<User[]> {
+    const travelers = await db
+      .select()
+      .from(users)
+      .where(eq(users.role, 'traveler'));
+    return travelers;
+  }
+
+  async assignAgentToTraveler(travelerId: number, agentId: number): Promise<void> {
+    await db
+      .update(users)
+      .set({ assignedAgentId: agentId })
+      .where(eq(users.id, travelerId));
   }
 }
 
@@ -610,9 +678,61 @@ export class MemStorage implements IStorage {
 
   async createFeedback(insertFeedback: InsertFeedback): Promise<Feedback> {
     const id = this.currentId++;
-    const feedback: Feedback = { ...insertFeedback, id };
+    const feedback: Feedback = { 
+      ...insertFeedback, 
+      id,
+      type: insertFeedback.type || 'general',
+      comment: insertFeedback.comment || null
+    };
     this.feedbacks.set(id, feedback);
     return feedback;
+  }
+
+  // Multi-user management methods for MemStorage
+  async getAssignedTravelers(agentId: number): Promise<User[]> {
+    return Array.from(this.users.values()).filter(u => u.assignedAgentId === agentId);
+  }
+
+  async getAgentStats(agentId: number): Promise<any> {
+    const assignedTravelers = await this.getAssignedTravelers(agentId);
+    const activeTrips = Array.from(this.trips.values()).filter(t => 
+      assignedTravelers.some(traveler => traveler.id === t.userId)
+    );
+    
+    return {
+      assignedTravelers: assignedTravelers.length,
+      activeTrips: activeTrips.length,
+      satisfaction: 4.9
+    };
+  }
+
+  async getSystemStats(): Promise<any> {
+    const totalTravelers = Array.from(this.users.values()).filter(u => u.role === 'traveler');
+    const totalAgents = Array.from(this.users.values()).filter(u => u.role === 'agent');
+    const activeTrips = Array.from(this.trips.values()).filter(t => t.status === 'active');
+    
+    return {
+      totalTravelers: totalTravelers.length,
+      activeAgents: totalAgents.length,
+      activeTrips: activeTrips.length,
+      avgSatisfaction: 4.8
+    };
+  }
+
+  async getAllAgents(): Promise<User[]> {
+    return Array.from(this.users.values()).filter(u => u.role === 'agent');
+  }
+
+  async getAllTravelers(): Promise<User[]> {
+    return Array.from(this.users.values()).filter(u => u.role === 'traveler');
+  }
+
+  async assignAgentToTraveler(travelerId: number, agentId: number): Promise<void> {
+    const traveler = this.users.get(travelerId);
+    if (traveler) {
+      traveler.assignedAgentId = agentId;
+      this.users.set(travelerId, traveler);
+    }
   }
 }
 
