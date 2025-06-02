@@ -5,6 +5,8 @@ import {
   type InsertActivity, type InsertChatMessage, type InsertSupportRequest,
   type InsertNotification, type InsertFeedback
 } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -50,6 +52,188 @@ export interface IStorage {
   getFeedback(id: number): Promise<Feedback | undefined>;
   getFeedbacksByTrip(tripId: number): Promise<Feedback[]>;
   createFeedback(feedback: InsertFeedback): Promise<Feedback>;
+}
+
+export class DatabaseStorage implements IStorage {
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
+    return user;
+  }
+
+  async getTrip(id: number): Promise<Trip | undefined> {
+    const [trip] = await db.select().from(trips).where(eq(trips.id, id));
+    return trip || undefined;
+  }
+
+  async getTripsByUser(userId: number): Promise<Trip[]> {
+    return await db.select().from(trips).where(eq(trips.userId, userId));
+  }
+
+  async getUserActiveTrip(userId: number): Promise<Trip | undefined> {
+    const [trip] = await db.select().from(trips).where(eq(trips.userId, userId));
+    return trip || undefined;
+  }
+
+  async createTrip(insertTrip: InsertTrip): Promise<Trip> {
+    const [trip] = await db
+      .insert(trips)
+      .values(insertTrip)
+      .returning();
+    return trip;
+  }
+
+  async updateTrip(id: number, updates: Partial<Trip>): Promise<Trip | undefined> {
+    const [trip] = await db
+      .update(trips)
+      .set(updates)
+      .where(eq(trips.id, id))
+      .returning();
+    return trip || undefined;
+  }
+
+  async getActivity(id: number): Promise<Activity | undefined> {
+    const [activity] = await db.select().from(activities).where(eq(activities.id, id));
+    return activity || undefined;
+  }
+
+  async getActivitiesByTrip(tripId: number): Promise<Activity[]> {
+    return await db.select().from(activities).where(eq(activities.tripId, tripId));
+  }
+
+  async getTodayActivities(tripId: number, date: string): Promise<Activity[]> {
+    return await db.select().from(activities).where(eq(activities.tripId, tripId));
+  }
+
+  async createActivity(insertActivity: InsertActivity): Promise<Activity> {
+    const [activity] = await db
+      .insert(activities)
+      .values(insertActivity)
+      .returning();
+    return activity;
+  }
+
+  async updateActivity(id: number, updates: Partial<Activity>): Promise<Activity | undefined> {
+    const [activity] = await db
+      .update(activities)
+      .set(updates)
+      .where(eq(activities.id, id))
+      .returning();
+    return activity || undefined;
+  }
+
+  async getChatMessage(id: number): Promise<ChatMessage | undefined> {
+    const [message] = await db.select().from(chatMessages).where(eq(chatMessages.id, id));
+    return message || undefined;
+  }
+
+  async getChatMessagesByTrip(tripId: number): Promise<ChatMessage[]> {
+    return await db.select().from(chatMessages).where(eq(chatMessages.tripId, tripId));
+  }
+
+  async createChatMessage(insertMessage: InsertChatMessage): Promise<ChatMessage> {
+    const [message] = await db
+      .insert(chatMessages)
+      .values(insertMessage)
+      .returning();
+    return message;
+  }
+
+  async markMessagesAsRead(userId: number, tripId: number): Promise<void> {
+    await db
+      .update(chatMessages)
+      .set({ isRead: true })
+      .where(eq(chatMessages.userId, userId));
+  }
+
+  async getUnreadMessageCount(userId: number): Promise<number> {
+    const messages = await db.select().from(chatMessages).where(eq(chatMessages.userId, userId));
+    return messages.filter(msg => !msg.isRead && msg.sender === "agent").length;
+  }
+
+  async getSupportRequest(id: number): Promise<SupportRequest | undefined> {
+    const [request] = await db.select().from(supportRequests).where(eq(supportRequests.id, id));
+    return request || undefined;
+  }
+
+  async getSupportRequestsByUser(userId: number): Promise<SupportRequest[]> {
+    return await db.select().from(supportRequests).where(eq(supportRequests.userId, userId));
+  }
+
+  async createSupportRequest(insertRequest: InsertSupportRequest): Promise<SupportRequest> {
+    const [request] = await db
+      .insert(supportRequests)
+      .values(insertRequest)
+      .returning();
+    return request;
+  }
+
+  async updateSupportRequest(id: number, updates: Partial<SupportRequest>): Promise<SupportRequest | undefined> {
+    const [request] = await db
+      .update(supportRequests)
+      .set(updates)
+      .where(eq(supportRequests.id, id))
+      .returning();
+    return request || undefined;
+  }
+
+  async getNotification(id: number): Promise<Notification | undefined> {
+    const [notification] = await db.select().from(notifications).where(eq(notifications.id, id));
+    return notification || undefined;
+  }
+
+  async getNotificationsByUser(userId: number): Promise<Notification[]> {
+    return await db.select().from(notifications).where(eq(notifications.userId, userId));
+  }
+
+  async getUnreadNotifications(userId: number): Promise<Notification[]> {
+    const allNotifications = await db.select().from(notifications).where(eq(notifications.userId, userId));
+    return allNotifications.filter(notif => !notif.isRead);
+  }
+
+  async createNotification(insertNotification: InsertNotification): Promise<Notification> {
+    const [notification] = await db
+      .insert(notifications)
+      .values(insertNotification)
+      .returning();
+    return notification;
+  }
+
+  async markNotificationAsRead(id: number): Promise<void> {
+    await db
+      .update(notifications)
+      .set({ isRead: true })
+      .where(eq(notifications.id, id));
+  }
+
+  async getFeedback(id: number): Promise<Feedback | undefined> {
+    const [feedback] = await db.select().from(feedbacks).where(eq(feedbacks.id, id));
+    return feedback || undefined;
+  }
+
+  async getFeedbacksByTrip(tripId: number): Promise<Feedback[]> {
+    return await db.select().from(feedbacks).where(eq(feedbacks.tripId, tripId));
+  }
+
+  async createFeedback(insertFeedback: InsertFeedback): Promise<Feedback> {
+    const [feedback] = await db
+      .insert(feedbacks)
+      .values(insertFeedback)
+      .returning();
+    return feedback;
+  }
 }
 
 export class MemStorage implements IStorage {
@@ -432,4 +616,4 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
