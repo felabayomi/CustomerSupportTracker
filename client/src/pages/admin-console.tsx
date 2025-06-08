@@ -108,9 +108,12 @@ export default function AdminConsole() {
         <Tabs defaultValue="overview" className="space-y-6">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="monitoring">Live Monitoring</TabsTrigger>
+            <TabsTrigger value="codes">Access Codes</TabsTrigger>
             <TabsTrigger value="agents">Agent Management</TabsTrigger>
             <TabsTrigger value="travelers">Traveler Management</TabsTrigger>
-            <TabsTrigger value="assignments">Assignments</TabsTrigger>
+            <TabsTrigger value="communications">Communications</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
           
           <TabsContent value="overview" className="space-y-4">
@@ -436,6 +439,303 @@ export default function AdminConsole() {
                         </div>
                       </div>
                     ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Live Monitoring Tab */}
+          <TabsContent value="monitoring" className="space-y-4">
+            <div className="grid lg:grid-cols-3 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <div className="h-3 w-3 bg-green-500 rounded-full animate-pulse"></div>
+                    <span>Live Chat Queue</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span>Pending Chats</span>
+                      <span className="font-semibold text-red-600">3</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Active Chats</span>
+                      <span className="font-semibold text-green-600">24</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Avg Wait Time</span>
+                      <span className="font-semibold">2m 15s</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Avg Response Time</span>
+                      <span className="font-semibold">45s</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Agent Status</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {[
+                      { name: "Sarah Anderson", status: "online", chats: 5, load: "Normal" },
+                      { name: "Michael Brown", status: "online", chats: 3, load: "Light" },
+                      { name: "Lisa Chen", status: "busy", chats: 8, load: "Heavy" },
+                      { name: "David Wilson", status: "offline", chats: 0, load: "N/A" }
+                    ].map((agent, index) => (
+                      <div key={index} className="flex items-center justify-between p-2 border rounded">
+                        <div className="flex items-center space-x-2">
+                          <div className={`h-2 w-2 rounded-full ${
+                            agent.status === 'online' ? 'bg-green-500' :
+                            agent.status === 'busy' ? 'bg-yellow-500' : 'bg-gray-400'
+                          }`}></div>
+                          <span className="text-sm font-medium">{agent.name}</span>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm">{agent.chats} chats</div>
+                          <div className="text-xs text-slate-500">{agent.load}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>System Health</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span>Database</span>
+                      <Badge className="bg-green-100 text-green-800">Healthy</Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span>API Response</span>
+                      <Badge className="bg-green-100 text-green-800">125ms</Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span>Memory Usage</span>
+                      <Badge className="bg-yellow-100 text-yellow-800">72%</Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span>Active Connections</span>
+                      <Badge className="bg-blue-100 text-blue-800">156</Badge>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Access Codes Tab */}
+          <TabsContent value="codes" className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold text-slate-900">Access Code Management</h3>
+              <Button onClick={() => window.open('/admin/felixdgreat', '_blank')}>
+                Open Secure Portal
+              </Button>
+            </div>
+            
+            <div className="grid lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Code Statistics</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span>Total Codes Generated</span>
+                      <span className="font-semibold">1,247</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Active Codes</span>
+                      <span className="font-semibold text-green-600">892</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Used Today</span>
+                      <span className="font-semibold">156</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Expired/Inactive</span>
+                      <span className="font-semibold text-red-600">355</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recent Code Usage</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ScrollArea className="h-48">
+                    <div className="space-y-2">
+                      {[
+                        { code: "ABC-123-DEF", user: "Maya Chen", time: "2 minutes ago", status: "active" },
+                        { code: "GHI-456-JKL", user: "John Smith", time: "15 minutes ago", status: "active" },
+                        { code: "MNO-789-PQR", user: "Sarah Wilson", time: "1 hour ago", status: "expired" },
+                        { code: "STU-012-VWX", user: "Mike Davis", time: "2 hours ago", status: "active" }
+                      ].map((usage, index) => (
+                        <div key={index} className="flex items-center justify-between p-2 border rounded">
+                          <div>
+                            <div className="font-mono text-sm">{usage.code}</div>
+                            <div className="text-xs text-slate-500">{usage.user}</div>
+                          </div>
+                          <div className="text-right">
+                            <Badge variant={usage.status === 'active' ? 'default' : 'secondary'}>
+                              {usage.status}
+                            </Badge>
+                            <div className="text-xs text-slate-500 mt-1">{usage.time}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Communications Tab */}
+          <TabsContent value="communications" className="space-y-4">
+            <div className="grid lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Broadcast Message</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium">Recipient Type</label>
+                    <select className="w-full mt-1 p-2 border rounded">
+                      <option>All Agents</option>
+                      <option>Online Agents Only</option>
+                      <option>All Travelers</option>
+                      <option>Active Travelers</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Message Type</label>
+                    <select className="w-full mt-1 p-2 border rounded">
+                      <option>General Announcement</option>
+                      <option>System Maintenance</option>
+                      <option>Emergency Alert</option>
+                      <option>Policy Update</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Message</label>
+                    <textarea 
+                      className="w-full mt-1 p-2 border rounded h-24" 
+                      placeholder="Enter your message here..."
+                    ></textarea>
+                  </div>
+                  <Button className="w-full">Send Broadcast</Button>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>System Announcements</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="font-medium">Maintenance Scheduled</div>
+                        <div className="text-sm text-slate-600">System will be down for 30 minutes tonight at 2 AM EST</div>
+                        <div className="text-xs text-slate-400">Posted 2 hours ago</div>
+                      </div>
+                      <Button size="sm" variant="outline">Edit</Button>
+                    </div>
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="font-medium">New Feature Launch</div>
+                        <div className="text-sm text-slate-600">Enhanced chat capabilities now available</div>
+                        <div className="text-xs text-slate-400">Posted 1 day ago</div>
+                      </div>
+                      <Button size="sm" variant="outline">Edit</Button>
+                    </div>
+                  </div>
+                  <Button className="w-full mt-4" variant="outline">Add New Announcement</Button>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Analytics Tab */}
+          <TabsContent value="analytics" className="space-y-4">
+            <div className="grid lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Performance Metrics</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <div className="flex justify-between mb-2">
+                        <span>Customer Satisfaction</span>
+                        <span className="font-semibold">4.8/5.0</span>
+                      </div>
+                      <div className="w-full bg-slate-200 rounded-full h-2">
+                        <div className="bg-green-500 h-2 rounded-full" style={{ width: '96%' }}></div>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex justify-between mb-2">
+                        <span>Resolution Rate</span>
+                        <span className="font-semibold">94%</span>
+                      </div>
+                      <div className="w-full bg-slate-200 rounded-full h-2">
+                        <div className="bg-blue-500 h-2 rounded-full" style={{ width: '94%' }}></div>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex justify-between mb-2">
+                        <span>First Contact Resolution</span>
+                        <span className="font-semibold">87%</span>
+                      </div>
+                      <div className="w-full bg-slate-200 rounded-full h-2">
+                        <div className="bg-purple-500 h-2 rounded-full" style={{ width: '87%' }}></div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Usage Trends</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span>Peak Usage Hours</span>
+                      <span className="font-semibold">2-4 PM EST</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Busiest Day</span>
+                      <span className="font-semibold">Monday</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Most Common Request</span>
+                      <span className="font-semibold">Dining Recommendations</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Average Session Length</span>
+                      <span className="font-semibold">12m 30s</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Top Destination</span>
+                      <span className="font-semibold">San Francisco</span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
