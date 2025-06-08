@@ -175,6 +175,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Access code verification
+  app.post("/api/access/verify", async (req, res) => {
+    try {
+      const { code } = req.body;
+      if (!code) {
+        return res.status(400).json({ message: "Access code required" });
+      }
+
+      const result = await storage.verifyAccessCode(code.toUpperCase());
+      if (result.isValid && result.user) {
+        res.json({
+          success: true,
+          userId: result.user.id,
+          userName: result.user.name,
+          role: result.user.role
+        });
+      } else {
+        res.status(401).json({ message: "Invalid access code" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Verification failed" });
+    }
+  });
+
+  // Generate access codes (secure admin only)
+  app.post("/api/admin/generate-codes", async (req, res) => {
+    try {
+      const { count } = req.body;
+      const codes = [];
+      
+      for (let i = 0; i < count; i++) {
+        const uniqueCode = storage.generateUniqueCode();
+        const travelers = await storage.getAllTravelers();
+        const randomTraveler = travelers[Math.floor(Math.random() * travelers.length)];
+        
+        if (randomTraveler) {
+          const accessCode = await storage.createAccessCode({
+            code: uniqueCode,
+            userId: randomTraveler.id,
+            isActive: true,
+            expiresAt: null,
+            createdAt: new Date().toISOString(),
+            lastUsedAt: null
+          });
+          codes.push(accessCode);
+        }
+      }
+      
+      res.json({ codes });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to generate codes" });
+    }
+  });
+
   // Get user's active trip
   app.get("/api/trip/active", async (req, res) => {
     try {

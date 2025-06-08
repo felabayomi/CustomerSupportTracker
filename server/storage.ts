@@ -799,6 +799,49 @@ export class MemStorage implements IStorage {
       this.users.set(travelerId, traveler);
     }
   }
+
+  // Access code management methods for MemStorage
+  generateUniqueCode(): string {
+    const chars = 'ABCDEFGHIJKLMNPQRSTUVWXYZ123456789';
+    let result = '';
+    for (let i = 0; i < 4; i++) {
+      for (let j = 0; j < 3; j++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      if (i < 3) result += '-';
+    }
+    return result;
+  }
+
+  async createAccessCode(insertCode: InsertAccessCode): Promise<AccessCode> {
+    const id = this.currentId++;
+    const code: AccessCode = { 
+      ...insertCode, 
+      id,
+      isActive: insertCode.isActive ?? true,
+      expiresAt: insertCode.expiresAt ?? null,
+      createdAt: new Date().toISOString(),
+      lastUsedAt: null
+    };
+    return code;
+  }
+
+  async verifyAccessCode(code: string): Promise<{ isValid: boolean; user?: User }> {
+    // For MemStorage, find user by any matching code logic
+    const user = Array.from(this.users.values()).find(u => u.username === "maya_chen");
+    if (user && code.length > 0) {
+      return { isValid: true, user };
+    }
+    return { isValid: false };
+  }
+
+  async deactivateAccessCode(code: string): Promise<void> {
+    // For MemStorage, this is a no-op in demo
+  }
+
+  async getAccessCodesByUser(userId: number): Promise<AccessCode[]> {
+    return [];
+  }
 }
 
 export const storage = new DatabaseStorage();
