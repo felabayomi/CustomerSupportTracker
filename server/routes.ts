@@ -104,8 +104,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get current user (authentication based on role)
   app.get("/api/user", async (req, res) => {
     try {
-      // In a real app, you'd get user ID from JWT token or session
-      const userId = parseInt(req.query.userId as string) || 1;
+      const userId = parseInt(req.query.userId as string) || 3; // Default to Maya Chen (ID: 3)
       const user = await storage.getUser(userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
@@ -119,7 +118,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Agent routes
   app.get("/api/agent/assigned-travelers", async (req, res) => {
     try {
-      const agentId = parseInt(req.query.agentId as string) || 2;
+      const agentId = parseInt(req.query.agentId as string) || 4; // Default to Sarah Anderson (ID: 4)
       const travelers = await storage.getAssignedTravelers(agentId);
       res.json(travelers);
     } catch (error) {
@@ -129,7 +128,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/agent/stats", async (req, res) => {
     try {
-      const agentId = parseInt(req.query.agentId as string) || 2;
+      const agentId = parseInt(req.query.agentId as string) || 4; // Default to Sarah Anderson (ID: 4)
       const stats = await storage.getAgentStats(agentId);
       res.json(stats);
     } catch (error) {
@@ -179,7 +178,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get user's active trip
   app.get("/api/trip/active", async (req, res) => {
     try {
-      const trip = await storage.getUserActiveTrip(1); // Mock user ID 1
+      const userId = parseInt(req.query.userId as string) || 3; // Default to Maya Chen (ID: 3)
+      const trip = await storage.getUserActiveTrip(userId);
       if (!trip) {
         return res.status(404).json({ message: "No active trip found" });
       }
@@ -192,7 +192,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get today's activities
   app.get("/api/activities/today", async (req, res) => {
     try {
-      const trip = await storage.getUserActiveTrip(1);
+      const userId = parseInt(req.query.userId as string) || 3; // Default to Maya Chen (ID: 3)
+      const trip = await storage.getUserActiveTrip(userId);
       if (!trip) {
         return res.status(404).json({ message: "No active trip found" });
       }
@@ -220,7 +221,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/chat/read/:tripId", async (req, res) => {
     try {
       const tripId = parseInt(req.params.tripId);
-      await storage.markMessagesAsRead(1, tripId); // Mock user ID 1
+      const userId = parseInt(req.body.userId) || 3; // Default to Maya Chen (ID: 3)
+      await storage.markMessagesAsRead(userId, tripId);
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ message: "Failed to mark messages as read" });
@@ -230,7 +232,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get unread message count
   app.get("/api/chat/unread-count", async (req, res) => {
     try {
-      const count = await storage.getUnreadMessageCount(1); // Mock user ID 1
+      const userId = parseInt(req.query.userId as string) || 3; // Default to Maya Chen (ID: 3)
+      const count = await storage.getUnreadMessageCount(userId);
       res.json({ count });
     } catch (error) {
       res.status(500).json({ message: "Failed to get unread count" });
@@ -240,7 +243,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get notifications
   app.get("/api/notifications", async (req, res) => {
     try {
-      const notifications = await storage.getNotificationsByUser(1); // Mock user ID 1
+      const userId = parseInt(req.query.userId as string) || 3; // Default to Maya Chen (ID: 3)
+      const notifications = await storage.getNotificationsByUser(userId);
       res.json(notifications);
     } catch (error) {
       res.status(500).json({ message: "Failed to get notifications" });
@@ -250,7 +254,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get unread notifications
   app.get("/api/notifications/unread", async (req, res) => {
     try {
-      const notifications = await storage.getUnreadNotifications(1); // Mock user ID 1
+      const userId = parseInt(req.query.userId as string) || 3; // Default to Maya Chen (ID: 3)
+      const notifications = await storage.getUnreadNotifications(userId);
       res.json(notifications);
     } catch (error) {
       res.status(500).json({ message: "Failed to get unread notifications" });
@@ -271,7 +276,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get support requests
   app.get("/api/support-requests", async (req, res) => {
     try {
-      const requests = await storage.getSupportRequestsByUser(1); // Mock user ID 1
+      const userId = parseInt(req.query.userId as string) || 3; // Default to Maya Chen (ID: 3)
+      const requests = await storage.getSupportRequestsByUser(userId);
       res.json(requests);
     } catch (error) {
       res.status(500).json({ message: "Failed to get support requests" });
