@@ -1,9 +1,9 @@
 import { 
-  users, trips, activities, chatMessages, supportRequests, notifications, feedbacks,
+  users, trips, activities, chatMessages, supportRequests, notifications, feedbacks, accessCodes,
   type User, type Trip, type Activity, type ChatMessage, type SupportRequest, 
-  type Notification, type Feedback, type InsertUser, type InsertTrip, 
+  type Notification, type Feedback, type AccessCode, type InsertUser, type InsertTrip, 
   type InsertActivity, type InsertChatMessage, type InsertSupportRequest,
-  type InsertNotification, type InsertFeedback
+  type InsertNotification, type InsertFeedback, type InsertAccessCode
 } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -60,6 +60,13 @@ export interface IStorage {
   getAllAgents(): Promise<User[]>;
   getAllTravelers(): Promise<User[]>;
   assignAgentToTraveler(travelerId: number, agentId: number): Promise<void>;
+
+  // Access code management
+  createAccessCode(code: InsertAccessCode): Promise<AccessCode>;
+  verifyAccessCode(code: string): Promise<{ isValid: boolean; user?: User }>;
+  generateUniqueCode(): string;
+  deactivateAccessCode(code: string): Promise<void>;
+  getAccessCodesByUser(userId: number): Promise<AccessCode[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -301,6 +308,64 @@ export class DatabaseStorage implements IStorage {
       .update(users)
       .set({ assignedAgentId: agentId })
       .where(eq(users.id, travelerId));
+  }
+
+  // Access code management methods
+  generateUniqueCode(): string {
+    const chars = 'ABCDEFGHIJKLMNPQRSTUVWXYZ123456789'; // Exclude O, 0 for clarity
+    let result = '';
+    for (let i = 0; i < 4; i++) {
+      for (let j = 0; j < 3; j++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      if (i < 3) result += '-';
+    }
+    return result;
+  }
+
+  async createAccessCode(insertCode: InsertAccessCode): Promise<AccessCode> {
+    const [code] = await db
+      .insert(accessCodes)
+      .values(insertCode)
+      .returning();
+    return code;
+  }
+
+  async verifyAccessCode(code: string): Promise<{ isValid: boolean; user?: User }> {
+    const [accessCode] = await db
+      .select()
+      .from(accessCodes)
+      .innerJoin(users, eq(accessCodes.userId, users.id))
+      .where(eq(accessCodes.code, code));
+
+    if (!accessCode || !accessCode.access_codes.isActive) {
+      return { isValid: false };
+    }
+
+    // Update last used timestamp
+    await db
+      .update(accessCodes)
+      .set({ lastUsedAt: new Date().toISOString() })
+      .where(eq(accessCodes.code, code));
+
+    return { 
+      isValid: true, 
+      user: accessCode.users 
+    };
+  }
+
+  async deactivateAccessCode(code: string): Promise<void> {
+    await db
+      .update(accessCodes)
+      .set({ isActive: false })
+      .where(eq(accessCodes.code, code));
+  }
+
+  async getAccessCodesByUser(userId: number): Promise<AccessCode[]> {
+    return await db
+      .select()
+      .from(accessCodes)
+      .where(eq(accessCodes.userId, userId));
   }
 }
 
