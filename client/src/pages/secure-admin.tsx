@@ -100,19 +100,17 @@ export default function SecureAdmin() {
     
     setIsLoading(true);
     try {
-      const response = await apiRequest('/api/verify-access-code', {
-        method: 'POST',
-        body: { code: codeToValidate.trim() }
-      });
+      const response = await apiRequest('POST', '/api/verify-access-code', { code: codeToValidate.trim() });
+      const result = await response.json();
       
-      setValidationResult(response);
+      setValidationResult(result);
       
       toast({
-        title: response.isValid ? "Valid Code" : "Invalid Code",
-        description: response.isValid 
-          ? `Code belongs to ${response.user?.name}` 
+        title: result.isValid ? "Valid Code" : "Invalid Code",
+        description: result.isValid 
+          ? `Code belongs to ${result.user?.name}` 
           : "This access code is not valid",
-        variant: response.isValid ? "default" : "destructive"
+        variant: result.isValid ? "default" : "destructive"
       });
     } catch (error) {
       setValidationResult({ isValid: false });
@@ -128,10 +126,7 @@ export default function SecureAdmin() {
 
   const deactivateCode = async (code: string) => {
     try {
-      await apiRequest('/api/admin/deactivate-code', {
-        method: 'POST',
-        body: { code }
-      });
+      await apiRequest('POST', '/api/admin/deactivate-code', { code });
       
       setValidationResult(null);
       setCodeToValidate("");
