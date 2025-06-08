@@ -222,7 +222,7 @@ export default function AdminConsole() {
                   {[
                     {
                       name: "Sarah Anderson",
-                      email: "sarah@felimark.com",
+                      email: "sarah@citydiscoverer.com",
                       status: "online",
                       assigned: 12,
                       rating: 4.9,
@@ -230,7 +230,7 @@ export default function AdminConsole() {
                     },
                     {
                       name: "Michael Brown",
-                      email: "michael@felimark.com", 
+                      email: "michael@citydiscoverer.com", 
                       status: "online",
                       assigned: 8,
                       rating: 4.7,
@@ -238,7 +238,7 @@ export default function AdminConsole() {
                     },
                     {
                       name: "Lisa Chen",
-                      email: "lisa@felimark.com",
+                      email: "lisa@citydiscoverer.com",
                       status: "offline",
                       assigned: 15,
                       rating: 4.8,

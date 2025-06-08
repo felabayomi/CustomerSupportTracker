@@ -168,7 +168,8 @@ export default function AccessPortal() {
         {/* Footer */}
         <div className="text-center mt-6 text-xs text-slate-500">
           <p>Need help? Contact your travel agent for your access code</p>
-          <p className="mt-1">© 2024 FELIMARK - Premium Travel Support</p>
+          <p className="mt-1">© 2025 Expedition America Travel Co. LLC DBA City Discoverer.</p>
+          <p className="mt-1">Powered by FELIMARK - Premium Travel Support</p>
         </div>
       </div>
     </div>
