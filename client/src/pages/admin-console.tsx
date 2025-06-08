@@ -32,7 +32,7 @@ export default function AdminConsole() {
               </div>
               <div>
                 <h1 className="text-xl font-semibold text-slate-900">Admin Console</h1>
-                <p className="text-xs text-slate-500">FELIMARK Management Center</p>
+                <p className="text-xs text-slate-500">Management Center</p>
               </div>
             </div>
             

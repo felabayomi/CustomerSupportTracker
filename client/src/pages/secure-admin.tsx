@@ -153,7 +153,7 @@ export default function SecureAdmin() {
               </div>
               <div>
                 <h1 className="text-xl font-semibold text-white">Secure Admin Portal</h1>
-                <p className="text-xs text-red-100">FELIMARK Code Management</p>
+                <p className="text-xs text-red-100">Code Management</p>
               </div>
             </div>
             

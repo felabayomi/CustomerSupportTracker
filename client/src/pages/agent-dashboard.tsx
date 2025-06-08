@@ -31,7 +31,7 @@ export default function AgentDashboard() {
               </div>
               <div>
                 <h1 className="text-xl font-semibold text-slate-900">Agent Dashboard</h1>
-                <p className="text-xs text-slate-500">FELIMARK Concierge Panel</p>
+                <p className="text-xs text-slate-500">Concierge Panel</p>
               </div>
             </div>
             

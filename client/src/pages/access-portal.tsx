@@ -85,9 +85,6 @@ export default function AccessPortal() {
             <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-2xl"></div>
           </div>
           
-          <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">
-            FELIMARK
-          </h1>
           <p className="text-xl text-blue-200 font-medium mb-1">
             Customer Support Hub
           </p>
