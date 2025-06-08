@@ -10,7 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 
 export default function AdminConsole() {
-  const [location, navigate] = useLocation();
+  const [location, setLocation] = useLocation();
   const { data: systemStats } = useQuery({
     queryKey: ["/api/admin/stats"],
   });
@@ -541,7 +541,7 @@ export default function AdminConsole() {
           <TabsContent value="codes" className="space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold text-slate-900">Access Code Management</h3>
-              <Button onClick={() => navigate('/admin/felixdgreat')}>
+              <Button onClick={() => setLocation('/admin/felixdgreat')}>
                 Back to Secure Portal
               </Button>
             </div>
