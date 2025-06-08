@@ -17,6 +17,23 @@ export const users = pgTable("users", {
   alertsEnabled: boolean("alerts_enabled").notNull().default(true),
 });
 
+export const accessCodes = pgTable("access_codes", {
+  id: serial("id").primaryKey(),
+  code: text("code").notNull().unique(),
+  userId: integer("user_id").notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  expiresAt: text("expires_at"), // ISO date string
+  createdAt: text("created_at").notNull(),
+  lastUsedAt: text("last_used_at"),
+});
+
+export const accessCodesRelations = relations(accessCodes, ({ one }) => ({
+  user: one(users, {
+    fields: [accessCodes.userId],
+    references: [users.id],
+  }),
+}));
+
 export const usersRelations = relations(users, ({ one, many }) => ({
   assignedAgent: one(users, {
     fields: [users.assignedAgentId],
@@ -27,6 +44,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   supportRequests: many(supportRequests),
   notifications: many(notifications),
   feedbacks: many(feedbacks),
+  accessCodes: many(accessCodes),
 }));
 
 export const trips = pgTable("trips", {
@@ -170,6 +188,7 @@ export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({ i
 export const insertSupportRequestSchema = createInsertSchema(supportRequests).omit({ id: true });
 export const insertNotificationSchema = createInsertSchema(notifications).omit({ id: true });
 export const insertFeedbackSchema = createInsertSchema(feedbacks).omit({ id: true });
+export const insertAccessCodeSchema = createInsertSchema(accessCodes).omit({ id: true });
 
 // Types
 export type User = typeof users.$inferSelect;
@@ -179,6 +198,7 @@ export type ChatMessage = typeof chatMessages.$inferSelect;
 export type SupportRequest = typeof supportRequests.$inferSelect;
 export type Notification = typeof notifications.$inferSelect;
 export type Feedback = typeof feedbacks.$inferSelect;
+export type AccessCode = typeof accessCodes.$inferSelect;
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertTrip = z.infer<typeof insertTripSchema>;
@@ -187,3 +207,4 @@ export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
 export type InsertSupportRequest = z.infer<typeof insertSupportRequestSchema>;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type InsertFeedback = z.infer<typeof insertFeedbackSchema>;
+export type InsertAccessCode = z.infer<typeof insertAccessCodeSchema>;
