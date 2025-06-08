@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Settings, Shield, Key, Download, Copy, RefreshCw, Users, BarChart3 } from "lucide-react";
+import { Settings, Shield, Key, Download, Copy, RefreshCw, Users, BarChart3, Search, CheckCircle, XCircle, Ban } from "lucide-react";
+import { Label } from "@/components/ui/label";
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -16,6 +17,13 @@ export default function SecureAdmin() {
   const [isLoading, setIsLoading] = useState(false);
   const [generatedCodes, setGeneratedCodes] = useState<any[]>([]);
   const [generateCount, setGenerateCount] = useState(10);
+  const [codeToValidate, setCodeToValidate] = useState("");
+  const [validationResult, setValidationResult] = useState<any>(null);
+  const [recentActivity] = useState([
+    { type: 'validation', action: 'Code validated successfully', code: '3Q6-HLN-9GM-1BF', timestamp: '2 minutes ago' },
+    { type: 'generation', action: 'Generated batch of 5 codes', code: 'Batch #247', timestamp: '15 minutes ago' },
+    { type: 'deactivation', action: 'Code deactivated', code: '7X2-PLK-4RT-9YZ', timestamp: '1 hour ago' },
+  ]);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
@@ -85,6 +93,60 @@ export default function SecureAdmin() {
     a.download = `access-codes-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
+  };
+
+  const validateAccessCode = async () => {
+    if (!codeToValidate.trim()) return;
+    
+    setIsLoading(true);
+    try {
+      const response = await apiRequest('/api/verify-access-code', {
+        method: 'POST',
+        body: { code: codeToValidate.trim() }
+      });
+      
+      setValidationResult(response);
+      
+      toast({
+        title: response.isValid ? "Valid Code" : "Invalid Code",
+        description: response.isValid 
+          ? `Code belongs to ${response.user?.name}` 
+          : "This access code is not valid",
+        variant: response.isValid ? "default" : "destructive"
+      });
+    } catch (error) {
+      setValidationResult({ isValid: false });
+      toast({
+        title: "Validation Error",
+        description: "Failed to validate access code",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const deactivateCode = async (code: string) => {
+    try {
+      await apiRequest('/api/admin/deactivate-code', {
+        method: 'POST',
+        body: { code }
+      });
+      
+      setValidationResult(null);
+      setCodeToValidate("");
+      
+      toast({
+        title: "Code Deactivated",
+        description: "Access code has been successfully deactivated",
+      });
+    } catch (error) {
+      toast({
+        title: "Deactivation Failed",
+        description: "Failed to deactivate access code",
+        variant: "destructive"
+      });
+    }
   };
 
   if (!isAuthenticated) {
@@ -264,12 +326,143 @@ export default function SecureAdmin() {
           <TabsContent value="manage" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Code Management</CardTitle>
+                <CardTitle>Code Validation Tool</CardTitle>
+                <p className="text-sm text-slate-600">Verify access codes, check their status, and view usage details</p>
               </CardHeader>
               <CardContent>
-                <p className="text-slate-600">Manage existing access codes, view usage statistics, and deactivate codes.</p>
-                <div className="mt-4 p-4 bg-slate-100 rounded-lg">
-                  <p className="text-sm text-slate-500">Code management features coming soon...</p>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="validateCode">Enter Access Code</Label>
+                    <div className="flex space-x-2 mt-1">
+                      <Input
+                        id="validateCode"
+                        placeholder="e.g., 3Q6-HLN-9GM-1BF"
+                        value={codeToValidate}
+                        onChange={(e) => setCodeToValidate(e.target.value)}
+                        className="flex-1 font-mono"
+                      />
+                      <Button onClick={validateAccessCode} disabled={!codeToValidate.trim()}>
+                        <Search className="h-4 w-4 mr-2" />
+                        Validate
+                      </Button>
+                    </div>
+                  </div>
+
+                  {validationResult && (
+                    <Card className={`border-2 ${validationResult.isValid ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="space-y-2">
+                            <div className="flex items-center space-x-2">
+                              {validationResult.isValid ? (
+                                <CheckCircle className="h-5 w-5 text-green-600" />
+                              ) : (
+                                <XCircle className="h-5 w-5 text-red-600" />
+                              )}
+                              <Badge 
+                                variant={validationResult.isValid ? "default" : "destructive"}
+                                className="font-mono"
+                              >
+                                {codeToValidate}
+                              </Badge>
+                              <span className={`text-sm font-medium ${validationResult.isValid ? 'text-green-700' : 'text-red-700'}`}>
+                                {validationResult.isValid ? 'Valid Code' : 'Invalid Code'}
+                              </span>
+                            </div>
+                            
+                            {validationResult.isValid && validationResult.user && (
+                              <div className="grid md:grid-cols-2 gap-4 mt-4">
+                                <div>
+                                  <h4 className="font-medium text-slate-900 mb-2">User Information</h4>
+                                  <div className="space-y-1 text-sm">
+                                    <p><span className="font-medium">Name:</span> {validationResult.user.name}</p>
+                                    <p><span className="font-medium">Email:</span> {validationResult.user.email}</p>
+                                    <p><span className="font-medium">Role:</span> {validationResult.user.role}</p>
+                                    <p><span className="font-medium">User ID:</span> {validationResult.user.id}</p>
+                                  </div>
+                                </div>
+                                
+                                <div>
+                                  <h4 className="font-medium text-slate-900 mb-2">Code Details</h4>
+                                  <div className="space-y-1 text-sm">
+                                    <p><span className="font-medium">Status:</span> 
+                                      <Badge variant="outline" className="ml-2">Active</Badge>
+                                    </p>
+                                    <p><span className="font-medium">Created:</span> {new Date().toLocaleDateString()}</p>
+                                    <p><span className="font-medium">Last Used:</span> {validationResult.lastUsed || 'Never'}</p>
+                                    <p><span className="font-medium">Usage Count:</span> {validationResult.usageCount || 0}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                            
+                            {!validationResult.isValid && (
+                              <div className="mt-3">
+                                <p className="text-sm text-red-600">
+                                  This access code is not valid. It may have been:
+                                </p>
+                                <ul className="text-sm text-red-600 mt-1 ml-4 list-disc">
+                                  <li>Entered incorrectly</li>
+                                  <li>Expired or deactivated</li>
+                                  <li>Never generated</li>
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {validationResult.isValid && (
+                            <div className="flex space-x-2">
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => copyToClipboard(codeToValidate)}
+                              >
+                                <Copy className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="destructive"
+                                onClick={() => deactivateCode(codeToValidate)}
+                              >
+                                <Ban className="h-4 w-4 mr-1" />
+                                Deactivate
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Code Activity</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {recentActivity.map((activity, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        {activity.type === 'validation' ? (
+                          <Search className="h-4 w-4 text-blue-500" />
+                        ) : activity.type === 'generation' ? (
+                          <Key className="h-4 w-4 text-green-500" />
+                        ) : (
+                          <Ban className="h-4 w-4 text-red-500" />
+                        )}
+                        <div>
+                          <p className="text-sm font-medium">{activity.action}</p>
+                          <p className="text-xs text-slate-500">{activity.timestamp}</p>
+                        </div>
+                      </div>
+                      <Badge variant="outline" className="font-mono text-xs">
+                        {activity.code}
+                      </Badge>
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>

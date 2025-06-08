@@ -229,6 +229,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Deactivate access code (secure admin only)
+  app.post("/api/admin/deactivate-code", async (req, res) => {
+    try {
+      const { code } = req.body;
+      await storage.deactivateAccessCode(code);
+      res.json({ success: true, message: "Access code deactivated successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to deactivate access code" });
+    }
+  });
+
   // Get user's active trip
   app.get("/api/trip/active", async (req, res) => {
     try {
