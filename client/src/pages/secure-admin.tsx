@@ -164,7 +164,7 @@ export default function SecureAdmin() {
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => setLocation("/admin-console")}
+                onClick={() => setLocation("/admin/felixdgreat/console")}
                 className="border-white/20 text-white hover:bg-white/10"
               >
                 <BarChart3 className="h-4 w-4 mr-2" />

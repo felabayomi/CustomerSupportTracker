@@ -7,8 +7,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Settings, Users, TrendingUp, AlertTriangle, UserCheck, MapPin, BarChart3 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 
 export default function AdminConsole() {
+  const [location, navigate] = useLocation();
   const { data: systemStats } = useQuery({
     queryKey: ["/api/admin/stats"],
   });
@@ -539,8 +541,8 @@ export default function AdminConsole() {
           <TabsContent value="codes" className="space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold text-slate-900">Access Code Management</h3>
-              <Button onClick={() => window.open('/admin/felixdgreat', '_blank')}>
-                Open Secure Portal
+              <Button onClick={() => navigate('/admin/felixdgreat')}>
+                Back to Secure Portal
               </Button>
             </div>
             

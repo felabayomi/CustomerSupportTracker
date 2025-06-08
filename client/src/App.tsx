@@ -16,8 +16,8 @@ function Router() {
       <Route path="/" component={AccessPortal} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/agent-panel" component={AgentDashboard} />
-      <Route path="/admin-console" component={AdminConsole} />
       <Route path="/admin/felixdgreat" component={SecureAdmin} />
+      <Route path="/admin/felixdgreat/console" component={AdminConsole} />
       <Route component={NotFound} />
     </Switch>
   );
