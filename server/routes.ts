@@ -240,6 +240,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Verify access code (for admin validation tool)
+  app.post("/api/verify-access-code", async (req, res) => {
+    try {
+      const { code } = req.body;
+      if (!code) {
+        return res.status(400).json({ message: "Access code required" });
+      }
+
+      const result = await storage.verifyAccessCode(code.toUpperCase());
+      if (result.isValid && result.user) {
+        res.json({
+          valid: true,
+          user: {
+            id: result.user.id,
+            name: result.user.name,
+            email: result.user.email,
+            role: result.user.role
+          }
+        });
+      } else {
+        res.json({ valid: false });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Verification failed" });
+    }
+  });
+
   // Get user's active trip
   app.get("/api/trip/active", async (req, res) => {
     try {
