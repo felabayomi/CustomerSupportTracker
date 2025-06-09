@@ -592,16 +592,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create support request
   app.post("/api/support-requests", async (req, res) => {
     try {
+      const userId = (req.session as any)?.userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
       const data = insertSupportRequestSchema.parse(req.body);
       const request = await storage.createSupportRequest({
         ...data,
-        userId: 1, // Mock user ID 1
+        userId,
         createdAt: new Date().toISOString()
       });
       
       // Create notification for new support request
       await storage.createNotification({
-        userId: 1,
+        userId,
         tripId: request.tripId,
         title: "Support Request Created",
         message: `Your ${request.type} request has been received and will be handled shortly.`,
