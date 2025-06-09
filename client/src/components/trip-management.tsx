@@ -2,36 +2,14 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Edit, Plus, CalendarX, ConciergeBell, ArrowRight } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
 import { ModifyBookingModal } from "./modify-booking-modal";
+import { TripActionModals } from "./trip-action-modals";
 
 export function TripManagement() {
-  const { toast } = useToast();
   const [isModifyModalOpen, setIsModifyModalOpen] = useState(false);
-
-  const handleAction = async (actionType: string, title: string) => {
-    try {
-      await apiRequest("POST", "/api/support-requests", {
-        tripId: 1,
-        type: "modification",
-        title,
-        description: `Request to ${actionType} current trip arrangements`,
-        priority: "normal"
-      });
-      
-      toast({
-        title: "Request Submitted",
-        description: `Your ${actionType} request has been sent to our team.`,
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to submit request. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
+  const [isAddActivityOpen, setIsAddActivityOpen] = useState(false);
+  const [isCancelRescheduleOpen, setIsCancelRescheduleOpen] = useState(false);
+  const [isSpecialRequestsOpen, setIsSpecialRequestsOpen] = useState(false);
 
   return (
     <Card className="mt-6">
@@ -60,7 +38,7 @@ export function TripManagement() {
           <Button
             variant="outline"
             className="h-auto p-4 flex-col items-start space-y-2 hover:border-secondary transition-colors"
-            onClick={() => handleAction("add activity", "Add Activity")}
+            onClick={() => setIsAddActivityOpen(true)}
           >
             <Plus className="text-secondary h-6 w-6" />
             <div className="text-left">
@@ -72,7 +50,7 @@ export function TripManagement() {
           <Button
             variant="outline"
             className="h-auto p-4 flex-col items-start space-y-2 hover:border-accent transition-colors"
-            onClick={() => handleAction("cancel/reschedule", "Cancel/Reschedule")}
+            onClick={() => setIsCancelRescheduleOpen(true)}
           >
             <CalendarX className="text-accent h-6 w-6" />
             <div className="text-left">
@@ -84,7 +62,7 @@ export function TripManagement() {
           <Button
             variant="outline"
             className="h-auto p-4 flex-col items-start space-y-2 hover:border-purple-500 transition-colors"
-            onClick={() => handleAction("special request", "Special Requests")}
+            onClick={() => setIsSpecialRequestsOpen(true)}
           >
             <ConciergeBell className="text-purple-500 h-6 w-6" />
             <div className="text-left">
@@ -98,6 +76,15 @@ export function TripManagement() {
       <ModifyBookingModal 
         isOpen={isModifyModalOpen} 
         onClose={() => setIsModifyModalOpen(false)} 
+      />
+      
+      <TripActionModals
+        isAddActivityOpen={isAddActivityOpen}
+        isCancelRescheduleOpen={isCancelRescheduleOpen}
+        isSpecialRequestsOpen={isSpecialRequestsOpen}
+        onCloseAddActivity={() => setIsAddActivityOpen(false)}
+        onCloseCancelReschedule={() => setIsCancelRescheduleOpen(false)}
+        onCloseSpecialRequests={() => setIsSpecialRequestsOpen(false)}
       />
     </Card>
   );
