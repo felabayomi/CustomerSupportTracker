@@ -21,6 +21,7 @@ interface ModifyBookingModalProps {
 }
 
 export function ModifyBookingModal({ isOpen, onClose }: ModifyBookingModalProps) {
+  const [selectedTripId, setSelectedTripId] = useState<number | null>(null);
   const [modificationType, setModificationType] = useState<string>("");
   const [newDate, setNewDate] = useState<Date>();
   const [newTime, setNewTime] = useState("");
@@ -31,13 +32,15 @@ export function ModifyBookingModal({ isOpen, onClose }: ModifyBookingModalProps)
   const [reasonForChange, setReasonForChange] = useState("");
   const { toast } = useToast();
 
-  const { data: trip } = useQuery<Trip>({
-    queryKey: ["/api/trip/active"],
+  const { data: trips = [] } = useQuery<Trip[]>({
+    queryKey: ["/api/trips"],
   });
 
+  const selectedTrip = trips.find(trip => trip.id === selectedTripId);
+
   const { data: activities = [] } = useQuery<Activity[]>({
-    queryKey: ["/api/activities", trip?.id],
-    enabled: !!trip?.id,
+    queryKey: ["/api/activities", selectedTripId],
+    enabled: !!selectedTripId,
   });
 
   const handleActivityChange = (activityId: string, checked: boolean) => {
@@ -49,6 +52,14 @@ export function ModifyBookingModal({ isOpen, onClose }: ModifyBookingModalProps)
   };
 
   const handleSubmit = async () => {
+    if (!selectedTripId) {
+      toast({
+        title: "Please select a trip to modify",
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (!modificationType) {
       toast({
         title: "Please select what you'd like to modify",
@@ -70,7 +81,7 @@ export function ModifyBookingModal({ isOpen, onClose }: ModifyBookingModalProps)
 
     try {
       await apiRequest("POST", "/api/support-requests", {
-        tripId: trip?.id,
+        tripId: selectedTripId,
         type: "modification",
         title: `Booking Modification Request - ${modificationType}`,
         description: `Modification Details: ${JSON.stringify(modificationDetails, null, 2)}`,
@@ -84,6 +95,7 @@ export function ModifyBookingModal({ isOpen, onClose }: ModifyBookingModalProps)
 
       onClose();
       // Reset form
+      setSelectedTripId(null);
       setModificationType("");
       setNewDate(undefined);
       setNewTime("");
@@ -109,13 +121,30 @@ export function ModifyBookingModal({ isOpen, onClose }: ModifyBookingModalProps)
         </DialogHeader>
 
         <div className="space-y-6">
+          {/* Trip Selection */}
+          <div className="space-y-3">
+            <Label htmlFor="trip-selection">Select Trip to Modify</Label>
+            <Select value={selectedTripId?.toString() || ""} onValueChange={(value) => setSelectedTripId(parseInt(value))}>
+              <SelectTrigger>
+                <SelectValue placeholder="Choose which trip you want to modify" />
+              </SelectTrigger>
+              <SelectContent>
+                {trips.map((trip) => (
+                  <SelectItem key={trip.id} value={trip.id.toString()}>
+                    {trip.title} - {trip.destination} ({trip.startDate} to {trip.endDate})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Current Trip Info */}
-          {trip && (
+          {selectedTrip && (
             <div className="bg-slate-50 p-4 rounded-lg">
-              <h4 className="font-medium mb-2">Current Booking:</h4>
-              <p className="text-sm text-slate-600">{trip.title}</p>
-              <p className="text-sm text-slate-600">{trip.destination}</p>
-              <p className="text-sm text-slate-600">{trip.startDate} to {trip.endDate}</p>
+              <h4 className="font-medium mb-2">Selected Booking:</h4>
+              <p className="text-sm text-slate-600">{selectedTrip.title}</p>
+              <p className="text-sm text-slate-600">{selectedTrip.destination}</p>
+              <p className="text-sm text-slate-600">{selectedTrip.startDate} to {selectedTrip.endDate}</p>
             </div>
           )}
 
