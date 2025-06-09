@@ -421,9 +421,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Store agent response timeouts to track when to prompt for contact info
   const agentResponseTimeouts = new Map<string, NodeJS.Timeout>();
 
-  // Helper function for public chat agent responses - only returns the bad message we want to eliminate
+  // Helper function for public chat agent responses
   function getPublicAgentResponse(userMessage: string): string {
-    return "Thanks for your message! For detailed assistance with city planning and travel recommendations, I'd recommend checking out our Explorer Pass subscriptions or trying our free itinerary generator. Is there something specific I can help you with?";
+    const message = userMessage.toLowerCase();
+    
+    // Travel destination inquiries
+    if (message.includes('paris') || message.includes('france')) {
+      return "Paris is amazing! I'd recommend visiting the Eiffel Tower, Louvre Museum, and exploring Montmartre. How many days are you planning to stay?";
+    }
+    
+    if (message.includes('tokyo') || message.includes('japan')) {
+      return "Tokyo offers incredible experiences! Don't miss Shibuya Crossing, traditional temples in Asakusa, and amazing food in Harajuku. What interests you most?";
+    }
+    
+    if (message.includes('new york') || message.includes('nyc')) {
+      return "New York City has so much to offer! Central Park, Times Square, Brooklyn Bridge, and world-class museums. Are you looking for cultural activities or entertainment?";
+    }
+    
+    if (message.includes('london') || message.includes('uk') || message.includes('england')) {
+      return "London is fantastic! The British Museum, Tower Bridge, and West End shows are must-sees. Would you like recommendations for specific neighborhoods?";
+    }
+    
+    if (message.includes('rome') || message.includes('italy')) {
+      return "Rome is a city steeped in history! The Colosseum, Vatican City, and Trevi Fountain are essential visits. Are you interested in historical sites or local cuisine?";
+    }
+    
+    // Activity-based inquiries
+    if (message.includes('hotel') || message.includes('accommodation') || message.includes('stay')) {
+      return "I can help you find great accommodation! What's your budget range and preferred area? Do you need family-friendly options or business amenities?";
+    }
+    
+    if (message.includes('flight') || message.includes('airline') || message.includes('booking')) {
+      return "For flight bookings, I can help you find the best deals! What are your departure and destination cities, and when are you planning to travel?";
+    }
+    
+    if (message.includes('restaurant') || message.includes('food') || message.includes('dining')) {
+      return "Food is one of the best parts of travel! Are you looking for local specialties, fine dining, or casual eateries? Any dietary preferences I should know about?";
+    }
+    
+    if (message.includes('itinerary') || message.includes('plan') || message.includes('schedule')) {
+      return "I'd love to help you create the perfect itinerary! How many days will you be traveling, and what are your main interests - history, culture, food, or adventure?";
+    }
+    
+    if (message.includes('budget') || message.includes('cost') || message.includes('price')) {
+      return "Budget planning is crucial for great trips! What's your approximate budget, and would you like tips on saving money while still having amazing experiences?";
+    }
+    
+    // General travel inquiries
+    if (message.includes('travel') || message.includes('trip') || message.includes('vacation') || message.includes('holiday')) {
+      return "I'm excited to help plan your trip! What destination are you considering, and what type of experience are you looking for?";
+    }
+    
+    if (message.includes('recommend') || message.includes('suggest') || message.includes('advice')) {
+      return "I'd be happy to provide personalized recommendations! Could you tell me more about your destination and what activities interest you most?";
+    }
+    
+    // Greetings and general
+    if (message.includes('hello') || message.includes('hi') || message.includes('hey')) {
+      return "Hello! I'm here to help you discover amazing travel experiences. What destination or travel question can I assist you with today?";
+    }
+    
+    if (message.includes('help') || message.includes('assist') || message.includes('support')) {
+      return "I'm here to help with all your travel needs! Whether it's destination planning, accommodation, activities, or travel tips - what would you like to know?";
+    }
+    
+    // Default response for unmatched messages
+    return "That's an interesting question! I'd love to help you with your travel plans. Could you tell me more about what you're looking for or which destination interests you?";
   }
 
   // Function to prompt for contact information after 5 minutes
