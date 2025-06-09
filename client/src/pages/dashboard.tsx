@@ -1,5 +1,6 @@
 import { NavigationHeader } from "@/components/navigation-header";
 import { TripOverviewCard } from "@/components/trip-overview-card";
+import { TripSelector } from "@/components/trip-selector";
 import { LiveChatWidget } from "@/components/live-chat-widget";
 import { SupportPanel } from "@/components/support-panel";
 import { TripManagement } from "@/components/trip-management";
@@ -11,6 +12,7 @@ import { AlertTriangle } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Dashboard() {
   const [showNotifications, setShowNotifications] = useState(false);

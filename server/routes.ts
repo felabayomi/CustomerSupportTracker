@@ -393,6 +393,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all trips for user
+  app.get("/api/trips", async (req, res) => {
+    try {
+      const userId = (req.session as any)?.userId || parseInt(req.query.userId as string);
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      
+      const trips = await storage.getTripsByUser(userId);
+      res.json(trips);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get trips" });
+    }
+  });
+
   // Get user's active trip
   app.get("/api/trip/active", async (req, res) => {
     try {
