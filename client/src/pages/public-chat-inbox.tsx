@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { MessageCircle, Send, Clock, Globe, User } from "lucide-react";
-import { useWebSocket } from "@/hooks/use-websocket";
+// Removed WebSocket dependency for HTTP-only reliability
 
 interface PublicChatSession {
   sessionId: string;
@@ -34,22 +34,8 @@ export default function PublicChatInbox() {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
 
-  const { sendMessage: sendWebSocketMessage, isConnected } = useWebSocket({
-    onMessage: (data) => {
-      if (data.type === 'public_chat_update') {
-        setSessions(prev => {
-          const existingIndex = prev.findIndex(s => s.sessionId === data.session.sessionId);
-          if (existingIndex >= 0) {
-            const updated = [...prev];
-            updated[existingIndex] = data.session;
-            return updated;
-          } else {
-            return [...prev, data.session];
-          }
-        });
-      }
-    }
-  });
+  // Use HTTP polling instead of WebSocket for reliability
+  const isConnected = true; // Always consider connected for HTTP mode
 
   // Fetch active public chat sessions
   const { data: activeSessions } = useQuery({
