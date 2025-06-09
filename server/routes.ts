@@ -771,6 +771,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Assign agent to traveler
+  app.post("/api/admin/assign-agent", async (req, res) => {
+    try {
+      const { travelerId, agentId } = req.body;
+      await storage.assignAgentToTraveler(travelerId, agentId);
+      res.json({ success: true, message: "Agent assigned successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to assign agent" });
+    }
+  });
+
   // Create customer and link access code
   app.post("/api/admin/create-customer", async (req, res) => {
     try {

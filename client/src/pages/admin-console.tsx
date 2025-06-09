@@ -163,6 +163,28 @@ export default function AdminConsole() {
     }
   });
 
+  // Assign agent mutation
+  const assignAgentMutation = useMutation({
+    mutationFn: async ({ travelerId, agentId }: { travelerId: number; agentId: number }) => {
+      const res = await apiRequest('POST', '/api/admin/assign-agent', { travelerId, agentId });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/travelers"] });
+      toast({
+        title: "Success",
+        description: "Agent assigned successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to assign agent. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
   // Itinerary management functions
   const addItinerary = (customerType = 'new') => {
     if (customerType === 'new') {
