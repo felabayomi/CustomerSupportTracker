@@ -258,6 +258,14 @@ export default function AdminConsole() {
                 <Button
                   variant="outline"
                   size="sm"
+                  onClick={() => setLocation('/admin/felixdgreat/public-chat-inbox')}
+                  className="text-xs"
+                >
+                  Public Chat Inbox
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => window.open('/public-chat-demo', '_blank')}
                   className="text-xs"
                 >

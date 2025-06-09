@@ -18,6 +18,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Store active WebSocket connections
   const activeConnections = new Map<number, WebSocket>();
   const publicConnections = new Map<string, WebSocket>();
+  const publicChatSessions = new Map<string, {
+    sessionId: string;
+    websiteUrl: string;
+    isActive: boolean;
+    lastActivity: string;
+    messages: Array<{
+      id: string;
+      message: string;
+      sender: 'user' | 'agent';
+      timestamp: string;
+      agentName?: string;
+    }>;
+  }>();
 
   wss.on('connection', (ws, req) => {
     console.log('WebSocket connection established');
@@ -97,17 +110,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         if (data.type === 'join_public_chat') {
           publicConnections.set(data.sessionId, ws);
+          
+          // Create or update session
+          const session = {
+            sessionId: data.sessionId,
+            websiteUrl: data.websiteUrl || 'unknown',
+            isActive: true,
+            lastActivity: new Date().toISOString(),
+            messages: []
+          };
+          publicChatSessions.set(data.sessionId, session);
+          
           console.log(`Public session ${data.sessionId} joined from ${data.websiteUrl}`);
         } else if (data.type === 'public_chat_message') {
-          // Simulate agent response after a delay for public chat
+          // Store user message
+          const userMessage = {
+            id: `user_${Date.now()}`,
+            message: data.message,
+            sender: 'user' as const,
+            timestamp: new Date().toISOString()
+          };
+          
+          const session = publicChatSessions.get(data.sessionId);
+          if (session) {
+            session.messages.push(userMessage);
+            session.lastActivity = new Date().toISOString();
+            publicChatSessions.set(data.sessionId, session);
+          }
+          
+          // Send AI response after delay (only if no agent takes over)
           setTimeout(() => {
             const agentResponse = {
               id: `agent_${Date.now()}`,
               message: getPublicAgentResponse(data.message),
-              sender: 'agent',
+              sender: 'agent' as const,
               timestamp: new Date().toISOString(),
-              agentName: 'Support Agent'
+              agentName: 'AI Assistant'
             };
+
+            // Store agent response
+            const currentSession = publicChatSessions.get(data.sessionId);
+            if (currentSession) {
+              currentSession.messages.push(agentResponse);
+              currentSession.lastActivity = new Date().toISOString();
+              publicChatSessions.set(data.sessionId, currentSession);
+            }
 
             if (ws.readyState === WebSocket.OPEN) {
               ws.send(JSON.stringify({
@@ -127,10 +174,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
       for (const [sessionId, connection] of publicConnections.entries()) {
         if (connection === ws) {
           publicConnections.delete(sessionId);
+          // Mark session as inactive
+          const session = publicChatSessions.get(sessionId);
+          if (session) {
+            session.isActive = false;
+            publicChatSessions.set(sessionId, session);
+          }
           break;
         }
       }
     });
+  });
+
+  // Public chat API routes
+  app.get("/api/public-chat/sessions", (req, res) => {
+    const sessions = Array.from(publicChatSessions.values()).map(session => ({
+      ...session,
+      unreadCount: session.messages.filter(msg => msg.sender === 'user').length
+    }));
+    res.json(sessions);
+  });
+
+  app.post("/api/public-chat/send", async (req, res) => {
+    try {
+      const { sessionId, message, agentName } = req.body;
+      
+      const session = publicChatSessions.get(sessionId);
+      if (!session) {
+        return res.status(404).json({ error: "Session not found" });
+      }
+
+      const agentMessage = {
+        id: `agent_${Date.now()}`,
+        message,
+        sender: 'agent' as const,
+        timestamp: new Date().toISOString(),
+        agentName: agentName || 'Support Agent'
+      };
+
+      // Add message to session
+      session.messages.push(agentMessage);
+      session.lastActivity = new Date().toISOString();
+      publicChatSessions.set(sessionId, session);
+
+      // Send message to the connected user if they're still connected
+      const ws = publicConnections.get(sessionId);
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          type: 'public_chat_message',
+          message: agentMessage
+        }));
+      }
+
+      res.json({ success: true, message: agentMessage });
+    } catch (error) {
+      console.error('Error sending public chat message:', error);
+      res.status(500).json({ error: "Failed to send message" });
+    }
   });
 
   // Helper function for agent responses
