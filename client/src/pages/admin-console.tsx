@@ -32,6 +32,14 @@ export default function AdminConsole() {
     tripDescription: ''
   });
 
+  const [newAlert, setNewAlert] = useState({
+    userId: '',
+    tripId: '',
+    title: '',
+    message: '',
+    type: 'info'
+  });
+
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -100,6 +108,34 @@ export default function AdminConsole() {
       toast({
         title: "Error",
         description: "Failed to update customer. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Send alert mutation
+  const sendAlertMutation = useMutation({
+    mutationFn: async (alertData: any) => {
+      const res = await apiRequest('POST', '/api/admin/send-alert', alertData);
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Travel alert sent successfully",
+      });
+      setNewAlert({
+        userId: '',
+        tripId: '',
+        title: '',
+        message: '',
+        type: 'info'
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to send alert. Please try again.",
         variant: "destructive",
       });
     }
@@ -356,6 +392,7 @@ export default function AdminConsole() {
             <TabsTrigger value="customers">Customer Management</TabsTrigger>
             <TabsTrigger value="agents">Agent Management</TabsTrigger>
             <TabsTrigger value="travelers">Traveler Management</TabsTrigger>
+            <TabsTrigger value="alerts">Travel Alerts</TabsTrigger>
             <TabsTrigger value="communications">Communications</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
@@ -1384,6 +1421,121 @@ export default function AdminConsole() {
                       <span className="font-semibold">San Francisco</span>
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Travel Alerts Tab */}
+          <TabsContent value="alerts" className="space-y-4">
+            <div className="grid lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Send Travel Alert</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium">Select Traveler</label>
+                    <Select value={newAlert.userId} onValueChange={(value) => setNewAlert(prev => ({ ...prev, userId: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose traveler" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {travelers?.map((traveler: any) => (
+                          <SelectItem key={traveler.id} value={traveler.id.toString()}>
+                            {traveler.name} ({traveler.username})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium">Alert Type</label>
+                    <Select value={newAlert.type} onValueChange={(value) => setNewAlert(prev => ({ ...prev, type: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select alert type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="info">Information</SelectItem>
+                        <SelectItem value="success">Good News</SelectItem>
+                        <SelectItem value="warning">Important Notice</SelectItem>
+                        <SelectItem value="alert">Urgent Alert</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium">Alert Title</label>
+                    <Input 
+                      placeholder="e.g., Weather Update, Schedule Change"
+                      value={newAlert.title}
+                      onChange={(e) => setNewAlert(prev => ({ ...prev, title: e.target.value }))}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium">Alert Message</label>
+                    <Textarea 
+                      placeholder="Detailed alert message for the traveler..."
+                      value={newAlert.message}
+                      onChange={(e) => setNewAlert(prev => ({ ...prev, message: e.target.value }))}
+                      className="h-24"
+                    />
+                  </div>
+
+                  <Button 
+                    onClick={() => sendAlertMutation.mutate(newAlert)}
+                    disabled={!newAlert.userId || !newAlert.title || !newAlert.message || sendAlertMutation.isPending}
+                    className="w-full"
+                  >
+                    {sendAlertMutation.isPending ? "Sending..." : "Send Alert"}
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Quick Alert Templates</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {[
+                    {
+                      title: "Weather Update",
+                      message: "Weather conditions have changed for your planned activities today.",
+                      type: "info"
+                    },
+                    {
+                      title: "Schedule Reminder", 
+                      message: "Your next activity starts in 30 minutes. Please check your itinerary.",
+                      type: "warning"
+                    },
+                    {
+                      title: "Dining Confirmation",
+                      message: "Your restaurant reservation has been confirmed. Details sent to your email.",
+                      type: "success"
+                    },
+                    {
+                      title: "Transportation Alert",
+                      message: "Your transportation has been delayed. New pickup time will be sent shortly.",
+                      type: "alert"
+                    }
+                  ].map((template, index) => (
+                    <div key={index} className={`p-3 rounded-lg border cursor-pointer hover:bg-slate-50 ${
+                      template.type === 'info' ? 'border-blue-200 bg-blue-50' :
+                      template.type === 'success' ? 'border-green-200 bg-green-50' :
+                      template.type === 'warning' ? 'border-yellow-200 bg-yellow-50' :
+                      'border-red-200 bg-red-50'
+                    }`} onClick={() => setNewAlert(prev => ({ 
+                      ...prev, 
+                      title: template.title, 
+                      message: template.message, 
+                      type: template.type 
+                    }))}>
+                      <h4 className="font-medium text-sm">{template.title}</h4>
+                      <p className="text-xs text-slate-600 mt-1">{template.message}</p>
+                    </div>
+                  ))}
                 </CardContent>
               </Card>
             </div>
