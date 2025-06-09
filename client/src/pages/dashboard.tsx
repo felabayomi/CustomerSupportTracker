@@ -104,18 +104,7 @@ export default function Dashboard() {
         onClose={() => setShowNotifications(false)}
       />
 
-      {/* SOS Button at bottom of page */}
-      <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
-        <Button
-          variant="destructive"
-          size="lg"
-          className="font-semibold px-8 py-4 text-lg shadow-lg hover:shadow-xl transition-all duration-200"
-          onClick={handleSOS}
-        >
-          <AlertTriangle className="h-6 w-6 mr-3" />
-          Emergency SOS
-        </Button>
-      </div>
+
     </div>
   );
 }
