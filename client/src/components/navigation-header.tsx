@@ -1,18 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Bell, Compass, AlertTriangle } from "lucide-react";
+import { Bell, Compass } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
 
 interface NavigationHeaderProps {
   onShowNotifications: () => void;
 }
 
 export function NavigationHeader({ onShowNotifications }: NavigationHeaderProps) {
-  const { toast } = useToast();
-
   const { data: user } = useQuery({
     queryKey: ["/api/user"],
   });
@@ -20,28 +16,6 @@ export function NavigationHeader({ onShowNotifications }: NavigationHeaderProps)
   const { data: unreadNotifications } = useQuery({
     queryKey: ["/api/notifications/unread"],
   });
-
-  const handleSOS = async () => {
-    try {
-      const response = await apiRequest("POST", "/api/emergency/sos", {
-        description: "Emergency assistance requested via SOS button"
-      });
-      
-      const data = await response.json();
-      
-      toast({
-        title: "🚨 Emergency Response Activated",
-        description: data.message,
-        variant: "destructive",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to contact emergency services. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
 
   const notificationCount = unreadNotifications?.length || 0;
 

@@ -324,6 +324,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const result = await storage.verifyAccessCode(code.toUpperCase());
       if (result.isValid && result.user) {
+        // Store user in session
+        (req.session as any).userId = result.user.id;
+        (req.session as any).user = result.user;
+        
         res.json({
           valid: true,
           user: {
@@ -344,7 +348,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get user's active trip
   app.get("/api/trip/active", async (req, res) => {
     try {
-      const userId = parseInt(req.query.userId as string) || 3; // Default to Maya Chen (ID: 3)
+      const userId = (req.session as any)?.userId || parseInt(req.query.userId as string) || 3;
       const trip = await storage.getUserActiveTrip(userId);
       if (!trip) {
         return res.status(404).json({ message: "No active trip found" });
@@ -358,7 +362,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get today's activities
   app.get("/api/activities/today", async (req, res) => {
     try {
-      const userId = parseInt(req.query.userId as string) || 3; // Default to Maya Chen (ID: 3)
+      const userId = (req.session as any)?.userId || parseInt(req.query.userId as string) || 3;
       const trip = await storage.getUserActiveTrip(userId);
       if (!trip) {
         return res.status(404).json({ message: "No active trip found" });
