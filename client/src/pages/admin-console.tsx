@@ -266,6 +266,14 @@ export default function AdminConsole() {
                 <Button
                   variant="outline"
                   size="sm"
+                  onClick={() => setLocation('/admin/felixdgreat/widget-integration')}
+                  className="text-xs"
+                >
+                  Widget Integration
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => window.open('/public-chat-demo', '_blank')}
                   className="text-xs"
                 >
