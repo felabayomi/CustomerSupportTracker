@@ -5,12 +5,25 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Settings, Users, TrendingUp, AlertTriangle, UserCheck, MapPin, BarChart3 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Settings, Users, TrendingUp, AlertTriangle, UserCheck, MapPin, BarChart3, Plus, Trash2, Edit, Save, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
+import { useState } from "react";
 
 export default function AdminConsole() {
   const [location, setLocation] = useLocation();
+  const [editingCustomer, setEditingCustomer] = useState(null);
+  const [newCustomer, setNewCustomer] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    accessCode: '',
+    preferences: '',
+    itineraries: ['']
+  });
+
   const { data: systemStats } = useQuery({
     queryKey: ["/api/admin/stats"],
   });
@@ -22,6 +35,92 @@ export default function AdminConsole() {
   const { data: travelers } = useQuery({
     queryKey: ["/api/admin/travelers"],
   });
+
+  // Itinerary management functions
+  const addItinerary = (customerType = 'new') => {
+    if (customerType === 'new') {
+      setNewCustomer(prev => ({
+        ...prev,
+        itineraries: [...prev.itineraries, '']
+      }));
+    } else if (editingCustomer) {
+      setEditingCustomer(prev => ({
+        ...prev,
+        itineraries: [...prev.itineraries, '']
+      }));
+    }
+  };
+
+  const removeItinerary = (index, customerType = 'new') => {
+    if (customerType === 'new') {
+      setNewCustomer(prev => ({
+        ...prev,
+        itineraries: prev.itineraries.filter((_, i) => i !== index)
+      }));
+    } else if (editingCustomer) {
+      setEditingCustomer(prev => ({
+        ...prev,
+        itineraries: prev.itineraries.filter((_, i) => i !== index)
+      }));
+    }
+  };
+
+  const updateItinerary = (index, value, customerType = 'new') => {
+    if (customerType === 'new') {
+      setNewCustomer(prev => ({
+        ...prev,
+        itineraries: prev.itineraries.map((itinerary, i) => 
+          i === index ? value : itinerary
+        )
+      }));
+    } else if (editingCustomer) {
+      setEditingCustomer(prev => ({
+        ...prev,
+        itineraries: prev.itineraries.map((itinerary, i) => 
+          i === index ? value : itinerary
+        )
+      }));
+    }
+  };
+
+  const startEditing = (customer) => {
+    setEditingCustomer({
+      ...customer,
+      itineraries: customer.itineraries || ['']
+    });
+  };
+
+  const cancelEditing = () => {
+    setEditingCustomer(null);
+  };
+
+  const saveCustomer = () => {
+    // Here you would call your API to save the customer
+    console.log('Saving customer:', editingCustomer);
+    setEditingCustomer(null);
+    // Add API call here
+  };
+
+  const createCustomer = () => {
+    // Here you would call your API to create the customer
+    console.log('Creating customer:', newCustomer);
+    setNewCustomer({
+      name: '',
+      email: '',
+      phone: '',
+      accessCode: '',
+      preferences: '',
+      itineraries: ['']
+    });
+    // Add API call here
+  };
+
+  const deleteCustomer = (customerId) => {
+    if (confirm('Are you sure you want to delete this customer?')) {
+      // Add API call here
+      console.log('Deleting customer:', customerId);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -623,18 +722,20 @@ export default function AdminConsole() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm font-medium">Customer Name</label>
-                      <input 
+                      <Input 
                         type="text" 
                         placeholder="e.g., Kattey Hensen"
-                        className="w-full mt-1 p-2 border rounded"
+                        value={newCustomer.name}
+                        onChange={(e) => setNewCustomer(prev => ({ ...prev, name: e.target.value }))}
                       />
                     </div>
                     <div>
                       <label className="text-sm font-medium">Email</label>
-                      <input 
+                      <Input 
                         type="email" 
                         placeholder="customer@email.com"
-                        className="w-full mt-1 p-2 border rounded"
+                        value={newCustomer.email}
+                        onChange={(e) => setNewCustomer(prev => ({ ...prev, email: e.target.value }))}
                       />
                     </div>
                   </div>
@@ -642,48 +743,87 @@ export default function AdminConsole() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm font-medium">Phone</label>
-                      <input 
+                      <Input 
                         type="tel" 
                         placeholder="+1-555-0123"
-                        className="w-full mt-1 p-2 border rounded"
+                        value={newCustomer.phone}
+                        onChange={(e) => setNewCustomer(prev => ({ ...prev, phone: e.target.value }))}
                       />
                     </div>
                     <div>
                       <label className="text-sm font-medium">Access Code</label>
-                      <select className="w-full mt-1 p-2 border rounded">
-                        <option>Select available code...</option>
-                        <option>31Y-818-APP-JMW</option>
-                        <option>BSI-SZZ-QRT-789</option>
-                        <option>DEY-QDL-MNP-456</option>
-                      </select>
+                      <Select 
+                        value={newCustomer.accessCode} 
+                        onValueChange={(value) => setNewCustomer(prev => ({ ...prev, accessCode: value }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select available code..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="31Y-818-APP-JMW">31Y-818-APP-JMW</SelectItem>
+                          <SelectItem value="BSI-SZZ-QRT-789">BSI-SZZ-QRT-789</SelectItem>
+                          <SelectItem value="DEY-QDL-MNP-456">DEY-QDL-MNP-456</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium">Itinerary Links</label>
-                    <div className="space-y-2 mt-1">
-                      <input 
-                        type="url" 
-                        placeholder="Scenario 1: https://view.citydiscoverer.ai/itinerary/..."
-                        className="w-full p-2 border rounded text-sm"
-                      />
-                      <input 
-                        type="url" 
-                        placeholder="Scenario 2: https://view.citydiscoverer.ai/itinerary/..."
-                        className="w-full p-2 border rounded text-sm"
-                      />
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="text-sm font-medium">Itinerary Links</label>
+                      <Button 
+                        type="button" 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => addItinerary('new')}
+                        className="flex items-center space-x-1"
+                      >
+                        <Plus className="h-3 w-3" />
+                        <span>Add Link</span>
+                      </Button>
+                    </div>
+                    <div className="space-y-2">
+                      {newCustomer.itineraries.map((itinerary, index) => (
+                        <div key={index} className="flex items-center space-x-2">
+                          <Input 
+                            type="url" 
+                            placeholder={`Scenario ${index + 1}: https://view.citydiscoverer.ai/itinerary/...`}
+                            value={itinerary}
+                            onChange={(e) => updateItinerary(index, e.target.value, 'new')}
+                            className="text-sm"
+                          />
+                          {newCustomer.itineraries.length > 1 && (
+                            <Button 
+                              type="button"
+                              size="sm" 
+                              variant="destructive"
+                              onClick={() => removeItinerary(index, 'new')}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
+                      ))}
                     </div>
                   </div>
 
                   <div>
                     <label className="text-sm font-medium">Travel Preferences</label>
-                    <textarea 
-                      className="w-full mt-1 p-2 border rounded h-20" 
+                    <Textarea 
                       placeholder="e.g., Adventure travel, cultural experiences, road trips"
-                    ></textarea>
+                      value={newCustomer.preferences}
+                      onChange={(e) => setNewCustomer(prev => ({ ...prev, preferences: e.target.value }))}
+                      className="h-20"
+                    />
                   </div>
 
-                  <Button className="w-full">Create Customer & Link Code</Button>
+                  <Button 
+                    className="w-full" 
+                    onClick={createCustomer}
+                    disabled={!newCustomer.name || !newCustomer.email || !newCustomer.accessCode}
+                  >
+                    Create Customer & Link Code
+                  </Button>
                 </CardContent>
               </Card>
 
@@ -696,55 +836,204 @@ export default function AdminConsole() {
                     <div className="space-y-3">
                       {[
                         {
+                          id: 1,
                           name: "Alex Thompson",
                           email: "alex.thompson@expedition-america.com",
+                          phone: "+1-555-0123",
                           code: "ZQC-MBX-4KP-UUG",
                           status: "active",
                           trip: "Pacific Coast Adventure",
+                          preferences: "Adventure activities, local cuisine, cultural experiences",
+                          itineraries: [
+                            "https://view.citydiscoverer.ai/itinerary/pacific-coast-premium",
+                            "https://view.citydiscoverer.ai/itinerary/big-sur-adventure"
+                          ],
                           avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=40&h=40&fit=crop&crop=face"
                         },
                         {
+                          id: 4,
                           name: "Kattey Hensen",
                           email: "kattey.hensen@email.com",
+                          phone: "+1-555-0199",
                           code: "31Y-818-APP-JMW",
                           status: "active",
                           trip: "Full Road Trip Drive",
+                          preferences: "Adventure travel, cultural experiences, road trips",
+                          itineraries: [
+                            "https://view.citydiscoverer.ai/itinerary/itinerary-1749482482503-1lnmea4pn",
+                            "https://view.citydiscoverer.ai/itinerary/itinerary-1749482321937-pjxoyw8d3"
+                          ],
                           avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=40&h=40&fit=crop&crop=face"
                         }
-                      ].map((customer, index) => (
-                        <div key={index} className="border rounded p-3">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center space-x-3">
-                              <Avatar className="h-8 w-8">
-                                <AvatarImage src={customer.avatar} alt={customer.name} />
-                                <AvatarFallback>{customer.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                              </Avatar>
+                      ].map((customer) => (
+                        <div key={customer.id} className="border rounded p-3">
+                          {editingCustomer?.id === customer.id ? (
+                            // Edit Mode
+                            <div className="space-y-3">
+                              <div className="flex items-center justify-between mb-3">
+                                <h4 className="font-medium text-sm">Editing Customer</h4>
+                                <div className="flex space-x-2">
+                                  <Button size="sm" onClick={saveCustomer} className="text-xs">
+                                    <Save className="h-3 w-3 mr-1" />
+                                    Save
+                                  </Button>
+                                  <Button size="sm" variant="outline" onClick={cancelEditing} className="text-xs">
+                                    <X className="h-3 w-3 mr-1" />
+                                    Cancel
+                                  </Button>
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                  <label className="text-xs font-medium">Name</label>
+                                  <Input 
+                                    value={editingCustomer.name}
+                                    onChange={(e) => setEditingCustomer(prev => ({ ...prev, name: e.target.value }))}
+                                    className="text-xs"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-xs font-medium">Email</label>
+                                  <Input 
+                                    value={editingCustomer.email}
+                                    onChange={(e) => setEditingCustomer(prev => ({ ...prev, email: e.target.value }))}
+                                    className="text-xs"
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                  <label className="text-xs font-medium">Phone</label>
+                                  <Input 
+                                    value={editingCustomer.phone}
+                                    onChange={(e) => setEditingCustomer(prev => ({ ...prev, phone: e.target.value }))}
+                                    className="text-xs"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-xs font-medium">Access Code</label>
+                                  <Input 
+                                    value={editingCustomer.code}
+                                    onChange={(e) => setEditingCustomer(prev => ({ ...prev, code: e.target.value }))}
+                                    className="text-xs font-mono"
+                                  />
+                                </div>
+                              </div>
+
                               <div>
-                                <p className="font-medium text-sm">{customer.name}</p>
-                                <p className="text-xs text-slate-500">{customer.email}</p>
+                                <div className="flex items-center justify-between mb-2">
+                                  <label className="text-xs font-medium">Itineraries</label>
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline"
+                                    onClick={() => addItinerary('edit')}
+                                    className="text-xs flex items-center space-x-1"
+                                  >
+                                    <Plus className="h-3 w-3" />
+                                    <span>Add</span>
+                                  </Button>
+                                </div>
+                                <div className="space-y-2">
+                                  {editingCustomer.itineraries.map((itinerary, index) => (
+                                    <div key={index} className="flex items-center space-x-2">
+                                      <Input 
+                                        value={itinerary}
+                                        onChange={(e) => updateItinerary(index, e.target.value, 'edit')}
+                                        className="text-xs"
+                                      />
+                                      {editingCustomer.itineraries.length > 1 && (
+                                        <Button 
+                                          size="sm" 
+                                          variant="destructive"
+                                          onClick={() => removeItinerary(index, 'edit')}
+                                          className="text-xs"
+                                        >
+                                          <Trash2 className="h-3 w-3" />
+                                        </Button>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+
+                              <div>
+                                <label className="text-xs font-medium">Preferences</label>
+                                <Textarea 
+                                  value={editingCustomer.preferences}
+                                  onChange={(e) => setEditingCustomer(prev => ({ ...prev, preferences: e.target.value }))}
+                                  className="text-xs h-16"
+                                />
                               </div>
                             </div>
-                            <Badge variant={customer.status === 'active' ? 'default' : 'secondary'}>
-                              {customer.status}
-                            </Badge>
-                          </div>
-                          
-                          <div className="text-xs space-y-1">
-                            <div className="flex justify-between">
-                              <span className="text-slate-500">Access Code:</span>
-                              <span className="font-mono">{customer.code}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-slate-500">Current Trip:</span>
-                              <span>{customer.trip}</span>
-                            </div>
-                          </div>
-                          
-                          <div className="flex space-x-2 mt-3">
-                            <Button size="sm" variant="outline" className="text-xs">Edit</Button>
-                            <Button size="sm" variant="outline" className="text-xs">View Details</Button>
-                            <Button size="sm" variant="destructive" className="text-xs">Deactivate</Button>
-                          </div>
+                          ) : (
+                            // View Mode
+                            <>
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center space-x-3">
+                                  <Avatar className="h-8 w-8">
+                                    <AvatarImage src={customer.avatar} alt={customer.name} />
+                                    <AvatarFallback>{customer.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                  </Avatar>
+                                  <div>
+                                    <p className="font-medium text-sm">{customer.name}</p>
+                                    <p className="text-xs text-slate-500">{customer.email}</p>
+                                  </div>
+                                </div>
+                                <Badge variant={customer.status === 'active' ? 'default' : 'secondary'}>
+                                  {customer.status}
+                                </Badge>
+                              </div>
+                              
+                              <div className="text-xs space-y-1 mb-2">
+                                <div className="flex justify-between">
+                                  <span className="text-slate-500">Access Code:</span>
+                                  <span className="font-mono">{customer.code}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-slate-500">Phone:</span>
+                                  <span>{customer.phone}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-slate-500">Current Trip:</span>
+                                  <span>{customer.trip}</span>
+                                </div>
+                              </div>
+
+                              <div className="text-xs mb-2">
+                                <p className="text-slate-500 mb-1">Itineraries ({customer.itineraries.length}):</p>
+                                <div className="space-y-1">
+                                  {customer.itineraries.map((itinerary, index) => (
+                                    <div key={index} className="truncate text-blue-600">
+                                      Scenario {index + 1}: {itinerary}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                              
+                              <div className="flex space-x-2 mt-3">
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  className="text-xs"
+                                  onClick={() => startEditing(customer)}
+                                >
+                                  <Edit className="h-3 w-3 mr-1" />
+                                  Edit
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="destructive" 
+                                  className="text-xs"
+                                  onClick={() => deleteCustomer(customer.id)}
+                                >
+                                  <Trash2 className="h-3 w-3 mr-1" />
+                                  Delete
+                                </Button>
+                              </div>
+                            </>
+                          )}
                         </div>
                       ))}
                     </div>
