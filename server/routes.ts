@@ -537,6 +537,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin route to send travel alert
+  app.post("/api/admin/send-alert", async (req, res) => {
+    try {
+      const { userId, title, message, type, tripId } = req.body;
+      
+      if (!userId || !title || !message || !type) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      // Get user's active trip if tripId not provided
+      let targetTripId = tripId;
+      if (!targetTripId) {
+        const activeTrip = await storage.getUserActiveTrip(parseInt(userId));
+        targetTripId = activeTrip?.id || null;
+      }
+
+      const notification = await storage.createNotification({
+        userId: parseInt(userId),
+        tripId: targetTripId,
+        title,
+        message,
+        type,
+        isRead: false,
+        createdAt: new Date().toISOString()
+      });
+
+      // Send real-time notification via WebSocket if user is connected
+      const userConnections = userSockets.get(parseInt(userId));
+      if (userConnections && userConnections.size > 0) {
+        for (const ws of userConnections) {
+          if (ws.readyState === ws.OPEN) {
+            ws.send(JSON.stringify({
+              type: 'notification',
+              data: notification
+            }));
+          }
+        }
+      }
+
+      res.json({ success: true, notification });
+    } catch (error) {
+      console.error('Send alert error:', error);
+      res.status(500).json({ message: "Failed to send alert" });
+    }
+  });
+
   // Assignment management
   app.post("/api/admin/assign-agent", async (req, res) => {
     try {
