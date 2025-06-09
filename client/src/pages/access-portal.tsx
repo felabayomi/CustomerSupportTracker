@@ -114,7 +114,7 @@ export default function AccessPortal() {
                   value={accessCode}
                   onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
                   className="bg-white/10 border-white/20 text-white placeholder:text-slate-400 text-center text-lg font-mono tracking-wider h-12"
-                  maxLength={12}
+                  maxLength={15}
                   autoComplete="off"
                   disabled={isLoading}
                 />

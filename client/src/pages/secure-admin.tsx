@@ -103,14 +103,20 @@ export default function SecureAdmin() {
       const response = await apiRequest('POST', '/api/verify-access-code', { code: codeToValidate.trim() });
       const result = await response.json();
       
-      setValidationResult(result);
+      // Convert API response format to match frontend expectations
+      const normalizedResult = {
+        isValid: result.valid,
+        user: result.user
+      };
+      
+      setValidationResult(normalizedResult);
       
       toast({
-        title: result.isValid ? "Valid Code" : "Invalid Code",
-        description: result.isValid 
-          ? `Code belongs to ${result.user?.name}` 
+        title: normalizedResult.isValid ? "Valid Code" : "Invalid Code",
+        description: normalizedResult.isValid 
+          ? `Code belongs to ${normalizedResult.user?.name}` 
           : "This access code is not valid",
-        variant: result.isValid ? "default" : "destructive"
+        variant: normalizedResult.isValid ? "default" : "destructive"
       });
     } catch (error) {
       setValidationResult({ isValid: false });
