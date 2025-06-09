@@ -19,6 +19,14 @@ export function LiveChatWidget() {
     queryKey: ["/api/trip/active"],
   });
 
+  const { data: user } = useQuery({
+    queryKey: ["/api/user"],
+  });
+
+  const { data: agents } = useQuery({
+    queryKey: ["/api/admin/agents"],
+  });
+
   const { data: messages = [] } = useQuery({
     queryKey: ["/api/chat/messages", trip?.id],
     queryFn: async () => {
@@ -102,11 +110,20 @@ export function LiveChatWidget() {
           <h3 className="font-semibold text-slate-900">Live Support Chat</h3>
         </div>
         <div className="flex items-center space-x-2">
-          <span className="text-sm text-slate-600">Sarah (Concierge)</span>
-          <Avatar className="h-8 w-8">
-            <AvatarImage src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&w=32&h=32&fit=crop&crop=face" />
-            <AvatarFallback>SA</AvatarFallback>
-          </Avatar>
+          {(() => {
+            const assignedAgent = user?.assignedAgentId && agents?.find((agent: any) => agent.id === user.assignedAgentId);
+            const agentName = assignedAgent?.name || 'Support Agent';
+            const agentInitials = agentName.split(' ').map((n: string) => n[0]).join('');
+            return (
+              <>
+                <span className="text-sm text-slate-600">{agentName}</span>
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={assignedAgent?.avatar} />
+                  <AvatarFallback>{agentInitials}</AvatarFallback>
+                </Avatar>
+              </>
+            );
+          })()}
         </div>
       </div>
       

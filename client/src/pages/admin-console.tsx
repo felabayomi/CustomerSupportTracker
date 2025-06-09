@@ -574,13 +574,78 @@ export default function AdminConsole() {
                     <SelectValue placeholder="Filter" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="all">All Travelers</SelectItem>
                     <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button variant="outline">Export</Button>
+                <Button>Add Traveler</Button>
               </div>
+            </div>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Agent Assignments</CardTitle>
+                <p className="text-sm text-slate-600">Manage which agent is assigned to each traveler</p>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {travelers?.map((traveler: any) => (
+                    <div key={traveler.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center space-x-4">
+                        <Avatar className="h-12 w-12">
+                          <AvatarImage src={traveler.avatar} alt={traveler.name} />
+                          <AvatarFallback>{traveler.name.split(' ').map((n: string) => n[0]).join('')}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <h4 className="font-semibold text-slate-900">{traveler.name}</h4>
+                          <p className="text-sm text-slate-600">{traveler.email}</p>
+                          <p className="text-sm text-slate-500">User ID: {traveler.id}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center space-x-4">
+                        <div className="text-center">
+                          <p className="text-sm text-slate-600">Current Agent</p>
+                          <p className="font-medium">
+                            {traveler.assignedAgentId ? 
+                              agents?.find((agent: any) => agent.id === traveler.assignedAgentId)?.name || 'Unknown Agent' : 
+                              'Unassigned'
+                            }
+                          </p>
+                        </div>
+                        
+                        <div className="flex space-x-2">
+                          <Select 
+                            value={traveler.assignedAgentId?.toString() || "unassigned"}
+                            onValueChange={(agentId) => {
+                              if (agentId === "unassigned") return;
+                              assignAgentMutation.mutate({
+                                travelerId: traveler.id,
+                                agentId: parseInt(agentId)
+                              });
+                            }}
+                          >
+                            <SelectTrigger className="w-40">
+                              <SelectValue placeholder="Assign agent" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="unassigned">Unassigned</SelectItem>
+                              {agents?.map((agent: any) => (
+                                <SelectItem key={agent.id} value={agent.id.toString()}>
+                                  {agent.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
             </div>
             
             <Card>
