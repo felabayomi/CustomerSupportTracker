@@ -173,7 +173,13 @@ export default function WidgetIntegration() {
     function initializeChat() {
       console.log('Initializing HTTP chat communication');
       httpFallbackActive = true;
-      // Start polling for new messages
+      // Clear any error messages and start polling
+      const messages = document.getElementById('messages');
+      if (messages) {
+        // Remove any error messages
+        const errorMessages = messages.querySelectorAll('[data-error="true"]');
+        errorMessages.forEach(msg => msg.remove());
+      }
       pollForResponses();
     }
     
@@ -198,11 +204,14 @@ export default function WidgetIntegration() {
           message: message,
           websiteUrl: window.location.hostname
         })
-      }).then(response => {
-        if (response.ok) {
-          // Poll for agent responses
-          pollForResponses();
+      }).then(response => response.json())
+      .then(data => {
+        if (data.success && data.response) {
+          // Immediately show agent response
+          addMessage(data.response.message, 'agent', data.response.agentName, data.response.id);
         }
+        // Continue polling for future messages
+        pollForResponses();
       }).catch(error => {
         console.error('HTTP message send failed:', error);
         addMessage('Message could not be sent. Please try again.', 'system');

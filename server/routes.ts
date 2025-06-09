@@ -251,7 +251,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       publicChatSessions.set(sessionId, session);
 
       // Schedule contact prompt if no further agent response in 5 minutes
-      scheduleContactPrompt(sessionId, null);
+      setTimeout(() => {
+        const session = publicChatSessions.get(sessionId);
+        if (session) {
+          const contactMessage = {
+            id: `contact_${Date.now()}`,
+            message: "I'd love to help you further! Please share your email or phone number so I can send you personalized recommendations and contact you within 24 hours with exclusive deals.",
+            sender: 'agent' as const,
+            timestamp: new Date().toISOString(),
+            agentName: 'City Discoverer'
+          };
+          session.messages.push(contactMessage);
+          publicChatSessions.set(sessionId, session);
+        }
+      }, 300000); // 5 minutes
 
       res.json({ 
         success: true, 
