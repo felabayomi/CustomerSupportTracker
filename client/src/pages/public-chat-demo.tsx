@@ -7,10 +7,10 @@ export default function PublicChatDemo() {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              Expedition America
+              City Discoverer
             </h1>
             <p className="text-xl text-gray-600 mb-8">
-              Discover Amazing Travel Experiences Across America
+              Discover Amazing Urban Adventures and City Experiences
             </p>
             <div className="grid md:grid-cols-3 gap-8 text-left">
               <div className="bg-white p-6 rounded-lg shadow-lg">
