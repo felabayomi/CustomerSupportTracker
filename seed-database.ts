@@ -5,16 +5,16 @@ import { eq } from "drizzle-orm";
 async function seedDatabase() {
   console.log("Seeding database...");
 
-  // Create sample traveler
+  // Create Expedition America traveler
   const [traveler] = await db.insert(users).values({
-    username: "maya_chen",
+    username: "traveler_001",
     password: "password",
-    name: "Maya Chen",
-    email: "maya.chen@email.com",
+    name: "Alex Thompson",
+    email: "alex.thompson@expedition-america.com",
     phone: "+1-555-0123",
-    avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&w=150&h=150&fit=crop&crop=face",
+    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&w=150&h=150&fit=crop&crop=face",
     role: "traveler",
-    preferences: JSON.stringify(["cultural experiences", "local cuisine", "photography"]),
+    preferences: JSON.stringify(["Adventure activities", "local cuisine", "cultural experiences"]),
     alertsEnabled: true
   }).returning();
 
@@ -51,53 +51,53 @@ async function seedDatabase() {
 
   console.log("Created users:", traveler.name, agent.name, admin.name);
 
-  // Create sample trip
+  // Create Expedition America trip
   const [trip] = await db.insert(trips).values({
     userId: traveler.id,
-    title: "San Francisco City Explorer",
-    destination: "San Francisco, CA",
-    startDate: "2024-03-15",
-    endDate: "2024-03-18",
+    title: "Pacific Coast Adventure",
+    destination: "Big Sur & Monterey, CA",
+    startDate: "2025-06-15",
+    endDate: "2025-06-20",
     status: "active",
-    description: "4-day comprehensive exploration of San Francisco including major landmarks, local cuisine, and cultural experiences."
+    description: "6-day premium expedition exploring California's stunning Pacific Coast with guided adventures and luxury accommodations."
   }).returning();
 
   console.log("Created trip:", trip.title);
 
-  // Create sample activities
+  // Create Expedition America activities
   const today = new Date().toISOString().split('T')[0];
   await db.insert(activities).values([
     {
       tripId: trip.id,
-      title: "Golden Gate Bridge Tour",
-      description: "Guided tour of the iconic Golden Gate Bridge with photo opportunities",
-      startTime: "10:00",
-      endTime: "12:00",
+      title: "McWay Falls Photography Expedition",
+      description: "Professional guided photography session at the iconic waterfall with premium equipment provided",
+      startTime: "08:00",
+      endTime: "11:00",
       date: today,
-      location: "Golden Gate Bridge Welcome Center",
+      location: "McWay Falls, Big Sur",
+      type: "adventure",
+      status: "scheduled"
+    },
+    {
+      tripId: trip.id,
+      title: "Monterey Bay Aquarium VIP Tour",
+      description: "Behind-the-scenes access with marine biologist guide and kelp forest dive experience",
+      startTime: "14:00",
+      endTime: "16:30",
+      date: today,
+      location: "Monterey Bay Aquarium",
       type: "tour",
       status: "scheduled"
     },
     {
       tripId: trip.id,
-      title: "Fisherman's Wharf Lunch",
-      description: "Seafood lunch at Pier 39 with harbor views",
-      startTime: "13:00",
-      endTime: "14:30",
+      title: "Farm-to-Table Dinner at Aubergine",
+      description: "Michelin-starred dining experience featuring local ingredients and wine pairings",
+      startTime: "19:30",
+      endTime: "22:00",
       date: today,
-      location: "Pier 39, Fisherman's Wharf",
+      location: "Aubergine Restaurant, Carmel-by-the-Sea",
       type: "dining",
-      status: "scheduled"
-    },
-    {
-      tripId: trip.id,
-      title: "Alcatraz Island Tour",
-      description: "Audio tour of the historic Alcatraz prison",
-      startTime: "16:00",
-      endTime: "18:00",
-      date: today,
-      location: "Alcatraz Island",
-      type: "tour",
       status: "scheduled"
     }
   ]);

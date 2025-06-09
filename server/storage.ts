@@ -536,15 +536,15 @@ export class MemStorage implements IStorage {
     ];
     notifications.forEach(notif => this.notifications.set(notif.id, notif));
 
-    // Create sample support requests
+    // Create sample support requests for Expedition America
     const supportRequests: SupportRequest[] = [
       {
         id: 1,
         userId: 1,
         tripId: 1,
         type: "assistance",
-        title: "Restaurant Recommendation",
-        description: "Looking for a good coffee shop near Golden Gate Bridge",
+        title: "Equipment Request",
+        description: "Requesting additional camera lens for sunset photography at Bixby Bridge",
         status: "resolved",
         priority: "normal",
         assignedAgent: "Sarah",
@@ -556,13 +556,13 @@ export class MemStorage implements IStorage {
         userId: 1,
         tripId: 1,
         type: "assistance",
-        title: "Weather Update Request",
-        description: "Need current weather conditions for outdoor activities",
-        status: "in_progress",
+        title: "Dining Modification",
+        description: "Request vegetarian menu options for tonight's dinner at Aubergine",
+        status: "resolved",
         priority: "normal",
         assignedAgent: "Sarah",
         createdAt: new Date(now.getTime() - 3600000).toISOString(),
-        resolvedAt: null
+        resolvedAt: new Date(now.getTime() - 3000000).toISOString()
       }
     ];
     supportRequests.forEach(req => this.supportRequests.set(req.id, req));
