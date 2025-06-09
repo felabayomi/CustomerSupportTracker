@@ -394,81 +394,85 @@ export class MemStorage implements IStorage {
   }
 
   private initializeSampleData() {
-    // Create sample user
+    // Create sample user for Expedition America
     const user: User = {
       id: 1,
-      username: "maya_chen",
+      username: "traveler_001",
       password: "password",
-      name: "Maya Chen",
-      email: "maya.chen@email.com",
+      name: "Alex Thompson",
+      email: "alex.thompson@expedition-america.com",
       phone: "+1-555-0123",
-      avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&w=150&h=150&fit=crop&crop=face"
+      avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&w=150&h=150&fit=crop&crop=face",
+      role: "traveler",
+      assignedAgentId: 4,
+      preferences: "Adventure activities, local cuisine, cultural experiences",
+      alertsEnabled: true
     };
     this.users.set(1, user);
 
-    // Create sample trip
+    // Create active Expedition America trip
     const trip: Trip = {
       id: 1,
       userId: 1,
-      title: "San Francisco City Explorer",
-      destination: "San Francisco, CA",
-      startDate: "2024-03-15",
-      endDate: "2024-03-18",
+      title: "Pacific Coast Adventure",
+      destination: "Big Sur & Monterey, CA",
+      startDate: "2025-06-15",
+      endDate: "2025-06-20",
       status: "active",
-      description: "4-day comprehensive exploration of San Francisco including major landmarks, local cuisine, and cultural experiences."
+      description: "6-day premium expedition exploring California's stunning Pacific Coast with guided adventures and luxury accommodations."
     };
     this.trips.set(1, trip);
 
-    // Create sample activities
+    // Create sample activities for Expedition America
     const today = new Date().toISOString().split('T')[0];
     const activities: Activity[] = [
       {
         id: 1,
         tripId: 1,
-        title: "Golden Gate Bridge Tour",
-        description: "Guided tour of the iconic Golden Gate Bridge with photo opportunities",
-        startTime: "10:00",
-        endTime: "12:00",
+        title: "McWay Falls Photography Expedition",
+        description: "Professional guided photography session at the iconic waterfall with premium equipment provided",
+        startTime: "08:00",
+        endTime: "11:00",
         date: today,
-        location: "Golden Gate Bridge Welcome Center",
-        type: "tour",
+        location: "McWay Falls, Big Sur",
+        type: "adventure",
         status: "scheduled"
       },
       {
         id: 2,
         tripId: 1,
-        title: "Fisherman's Wharf Lunch",
-        description: "Seafood lunch at Pier 39 with harbor views",
-        startTime: "13:00",
-        endTime: "14:30",
+        title: "Monterey Bay Aquarium VIP Tour",
+        description: "Behind-the-scenes access with marine biologist guide and kelp forest dive experience",
+        startTime: "14:00",
+        endTime: "16:30",
         date: today,
-        location: "Pier 39, Fisherman's Wharf",
-        type: "dining",
+        location: "Monterey Bay Aquarium",
+        type: "tour",
         status: "scheduled"
       },
       {
         id: 3,
         tripId: 1,
-        title: "Alcatraz Island Tour",
-        description: "Audio tour of the historic Alcatraz prison",
-        startTime: "16:00",
-        endTime: "18:00",
+        title: "Farm-to-Table Dinner at Aubergine",
+        description: "Michelin-starred dining experience featuring local ingredients and wine pairings",
+        startTime: "19:30",
+        endTime: "22:00",
         date: today,
-        location: "Alcatraz Island",
-        type: "tour",
+        location: "Aubergine Restaurant, Carmel-by-the-Sea",
+        type: "dining",
         status: "scheduled"
       }
     ];
     activities.forEach(activity => this.activities.set(activity.id, activity));
 
-    // Create sample chat messages
+    // Create sample chat messages for Expedition America
     const now = new Date();
     const chatMessages: ChatMessage[] = [
       {
         id: 1,
         userId: 1,
         tripId: 1,
-        message: "Good morning Maya! I hope you're excited about your Golden Gate Bridge tour today. The weather looks perfect! 🌤️",
+        message: "Good morning Alex! Welcome to your Pacific Coast Adventure. Your photography guide will meet you at McWay Falls at 8:00 AM. The conditions are perfect for capturing the waterfall.",
         sender: "agent",
         agentName: "Sarah",
         timestamp: new Date(now.getTime() - 180000).toISOString(),
@@ -478,7 +482,7 @@ export class MemStorage implements IStorage {
         id: 2,
         userId: 1,
         tripId: 1,
-        message: "Hi Sarah! Yes, I'm really looking forward to it. Quick question - is there a good coffee shop near the tour starting point?",
+        message: "Thank you Sarah! I'm excited to start. Should I bring anything specific for the photography session?",
         sender: "user",
         agentName: null,
         timestamp: new Date(now.getTime() - 120000).toISOString(),
@@ -488,7 +492,7 @@ export class MemStorage implements IStorage {
         id: 3,
         userId: 1,
         tripId: 1,
-        message: "Absolutely! Blue Bottle Coffee is just 2 blocks away. I'll send you the exact location. They open at 9:30 AM ☕",
+        message: "All professional equipment is provided including cameras, lenses, and tripods. Just bring comfortable hiking shoes and a light jacket. Your guide has backup gear ready.",
         sender: "agent",
         agentName: "Sarah",
         timestamp: new Date(now.getTime() - 60000).toISOString(),
@@ -497,14 +501,14 @@ export class MemStorage implements IStorage {
     ];
     chatMessages.forEach(msg => this.chatMessages.set(msg.id, msg));
 
-    // Create sample notifications
+    // Create sample notifications for Expedition America
     const notifications: Notification[] = [
       {
         id: 1,
         userId: 1,
         tripId: 1,
-        title: "Weather Update",
-        message: "Light winds expected during your bridge tour - perfect conditions!",
+        title: "Trip Welcome",
+        message: "Welcome to your Pacific Coast Adventure! Your concierge Sarah is available 24/7 for assistance.",
         type: "info",
         isRead: false,
         createdAt: new Date(now.getTime() - 300000).toISOString()
@@ -513,8 +517,8 @@ export class MemStorage implements IStorage {
         id: 2,
         userId: 1,
         tripId: 1,
-        title: "Schedule Reminder",
-        message: "Your lunch reservation is confirmed for 1:00 PM",
+        title: "Photography Session",
+        message: "Perfect conditions at McWay Falls today - clear skies and minimal fog for your photo expedition.",
         type: "success",
         isRead: false,
         createdAt: new Date(now.getTime() - 240000).toISOString()
@@ -523,10 +527,10 @@ export class MemStorage implements IStorage {
         id: 3,
         userId: 1,
         tripId: 1,
-        title: "Tour Reminder",
-        message: "Your Golden Gate Bridge tour starts in 30 minutes",
-        type: "warning",
-        isRead: false,
+        title: "Dinner Confirmation",
+        message: "Your table at Aubergine Restaurant is confirmed for 7:30 PM. Transportation arranged.",
+        type: "success",
+        isRead: true,
         createdAt: new Date(now.getTime() - 30000).toISOString()
       }
     ];
