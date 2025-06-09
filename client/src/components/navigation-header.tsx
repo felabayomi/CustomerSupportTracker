@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Bell, Compass } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "wouter";
 
 interface NavigationHeaderProps {
   onShowNotifications: () => void;
@@ -23,7 +24,14 @@ export function NavigationHeader({ onShowNotifications }: NavigationHeaderProps)
     <header className="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <div className="flex items-center space-x-3">
+          <Link 
+            href="/" 
+            className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
+            onClick={() => {
+              localStorage.removeItem("accessCode");
+              localStorage.removeItem("userId");
+            }}
+          >
             <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
               <Compass className="text-white text-lg" />
             </div>
@@ -31,7 +39,7 @@ export function NavigationHeader({ onShowNotifications }: NavigationHeaderProps)
               <h1 className="text-xl font-semibold text-slate-900">Expedition America</h1>
               <p className="text-xs text-slate-500">Traveler Support Hub</p>
             </div>
-          </div>
+          </Link>
           
           <div className="flex items-center space-x-4">
             <Button
