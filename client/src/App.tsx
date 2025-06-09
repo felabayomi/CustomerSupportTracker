@@ -8,6 +8,7 @@ import Dashboard from "@/pages/dashboard";
 import AgentDashboard from "@/pages/agent-dashboard";
 import AdminConsole from "@/pages/admin-console";
 import SecureAdmin from "@/pages/secure-admin";
+import PublicChatDemo from "@/pages/public-chat-demo";
 import NotFound from "@/pages/not-found";
 
 function Router() {

@@ -13,9 +13,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // WebSocket server for real-time chat
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  const publicWss = new WebSocketServer({ server: httpServer, path: '/public-ws' });
   
   // Store active WebSocket connections
   const activeConnections = new Map<number, WebSocket>();
+  const publicConnections = new Map<string, WebSocket>();
 
   wss.on('connection', (ws, req) => {
     console.log('WebSocket connection established');
@@ -85,6 +87,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Public WebSocket server for general website chat
+  publicWss.on('connection', (ws, req) => {
+    console.log('Public WebSocket connection established');
+    
+    ws.on('message', async (message) => {
+      try {
+        const data = JSON.parse(message.toString());
+        
+        if (data.type === 'join_public_chat') {
+          publicConnections.set(data.sessionId, ws);
+          console.log(`Public session ${data.sessionId} joined from ${data.websiteUrl}`);
+        } else if (data.type === 'public_chat_message') {
+          // Simulate agent response after a delay for public chat
+          setTimeout(() => {
+            const agentResponse = {
+              id: `agent_${Date.now()}`,
+              message: getPublicAgentResponse(data.message),
+              sender: 'agent',
+              timestamp: new Date().toISOString(),
+              agentName: 'Support Agent'
+            };
+
+            if (ws.readyState === WebSocket.OPEN) {
+              ws.send(JSON.stringify({
+                type: 'public_chat_message',
+                message: agentResponse
+              }));
+            }
+          }, 1000 + Math.random() * 2000);
+        }
+      } catch (error) {
+        console.error('Public WebSocket message error:', error);
+      }
+    });
+
+    ws.on('close', () => {
+      console.log('Public WebSocket connection closed');
+      for (const [sessionId, connection] of publicConnections.entries()) {
+        if (connection === ws) {
+          publicConnections.delete(sessionId);
+          break;
+        }
+      }
+    });
+  });
+
   // Helper function for agent responses
   function getAgentResponse(userMessage: string): string {
     const responses = [
@@ -97,6 +145,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       "Great choice! I'll make sure everything is arranged perfectly for you."
     ];
     return responses[Math.floor(Math.random() * responses.length)];
+  }
+
+  // Helper function for public chat agent responses
+  function getPublicAgentResponse(userMessage: string): string {
+    const lowerMessage = userMessage.toLowerCase();
+    
+    if (lowerMessage.includes('price') || lowerMessage.includes('cost') || lowerMessage.includes('book')) {
+      return "I'd be happy to help you with pricing information! Our travel specialists can provide you with detailed quotes for your dream adventure. What destination are you interested in?";
+    } else if (lowerMessage.includes('trip') || lowerMessage.includes('travel') || lowerMessage.includes('vacation')) {
+      return "Exciting! We offer amazing travel experiences across America. From national parks to city adventures, we can help you plan the perfect trip. What type of experience interests you most?";
+    } else if (lowerMessage.includes('contact') || lowerMessage.includes('phone') || lowerMessage.includes('call')) {
+      return "You can reach us at 1-800-EXPEDITION or email us at hello@expeditionamerica.com. Our team is available 24/7 to help plan your next adventure!";
+    } else if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('hey')) {
+      return "Hello! Welcome to Expedition America. I'm here to help you discover amazing travel experiences. How can I assist you today?";
+    } else {
+      const responses = [
+        "Thanks for reaching out! I'm here to help you with any questions about our travel experiences.",
+        "Great question! Let me connect you with the right information about our services.",
+        "I'd love to help you plan your next adventure! What would you like to know more about?",
+        "Thanks for your interest in Expedition America! How can I make your travel dreams come true?",
+        "I'm here to help! Our team specializes in creating unforgettable travel experiences."
+      ];
+      return responses[Math.floor(Math.random() * responses.length)];
+    }
   }
 
   // API Routes
