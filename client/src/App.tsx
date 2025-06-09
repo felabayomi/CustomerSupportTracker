@@ -25,6 +25,7 @@ function Router() {
       <Route path="/admin/felixdgreat/support-requests" component={AdminSupportRequests} />
       <Route path="/admin/felixdgreat/trip-management" component={AdminTripManagement} />
       <Route path="/admin/felixdgreat/public-chat-inbox" component={PublicChatInbox} />
+      <Route path="/admin/felixdgreat/public-chat-demo" component={PublicChatDemo} />
       <Route path="/public-chat-demo" component={PublicChatDemo} />
       <Route component={NotFound} />
     </Switch>

@@ -30,7 +30,7 @@ export function PublicChatWidget({
   agentAvatar,
   brandColor = "#3b82f6",
   companyName = "City Discoverer",
-  welcomeMessage = "Hi! How can we help you today?"
+  welcomeMessage = "I can help you discover cities, build smart itineraries, and even book flights, hotels, or car rentals with exclusive agency discounts. Whether you're exploring locally or going global—I'm here to make travel easy. How can I assist you today?"
 }: PublicChatWidgetProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);

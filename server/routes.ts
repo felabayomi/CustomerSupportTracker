@@ -138,31 +138,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             publicChatSessions.set(data.sessionId, session);
           }
           
-          // Send AI response after delay (only if no agent takes over)
-          setTimeout(() => {
-            const agentResponse = {
-              id: `agent_${Date.now()}`,
-              message: getPublicAgentResponse(data.message),
-              sender: 'agent' as const,
-              timestamp: new Date().toISOString(),
-              agentName: 'AI Assistant'
-            };
-
-            // Store agent response
-            const currentSession = publicChatSessions.get(data.sessionId);
-            if (currentSession) {
-              currentSession.messages.push(agentResponse);
-              currentSession.lastActivity = new Date().toISOString();
-              publicChatSessions.set(data.sessionId, currentSession);
-            }
-
-            if (ws.readyState === WebSocket.OPEN) {
-              ws.send(JSON.stringify({
-                type: 'public_chat_message',
-                message: agentResponse
-              }));
-            }
-          }, 1000 + Math.random() * 2000);
+          // Start 5-minute timer for contact prompt (if no agent responds)
+          scheduleContactPrompt(data.sessionId, ws);
         }
       } catch (error) {
         console.error('Public WebSocket message error:', error);
@@ -234,6 +211,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Session not found" });
       }
 
+      // Clear contact prompt timeout when agent responds
+      if (agentResponseTimeouts.has(sessionId)) {
+        clearTimeout(agentResponseTimeouts.get(sessionId));
+        agentResponseTimeouts.delete(sessionId);
+      }
+
       const agentMessage = {
         id: `agent_${Date.now()}`,
         message,
@@ -277,28 +260,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return responses[Math.floor(Math.random() * responses.length)];
   }
 
-  // Helper function for public chat agent responses
+  // Store agent response timeouts to track when to prompt for contact info
+  const agentResponseTimeouts = new Map<string, NodeJS.Timeout>();
+
+  // Helper function for public chat agent responses - only returns the bad message we want to eliminate
   function getPublicAgentResponse(userMessage: string): string {
-    const lowerMessage = userMessage.toLowerCase();
-    
-    if (lowerMessage.includes('price') || lowerMessage.includes('cost') || lowerMessage.includes('book')) {
-      return "I'd be happy to help you with pricing information! Our travel specialists can provide you with detailed quotes for your dream adventure. What destination are you interested in?";
-    } else if (lowerMessage.includes('trip') || lowerMessage.includes('travel') || lowerMessage.includes('vacation')) {
-      return "Exciting! We offer amazing travel experiences across America. From national parks to city adventures, we can help you plan the perfect trip. What type of experience interests you most?";
-    } else if (lowerMessage.includes('contact') || lowerMessage.includes('phone') || lowerMessage.includes('call')) {
-      return "You can reach us at 1-800-CITY-DISC or email us at hello@citydiscoverer.com. Our team is available 24/7 to help plan your next adventure!";
-    } else if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('hey')) {
-      return "Hello! Welcome to City Discoverer. I'm here to help you discover amazing travel experiences. How can I assist you today?";
-    } else {
-      const responses = [
-        "Thanks for reaching out! I'm here to help you with any questions about our travel experiences.",
-        "Great question! Let me connect you with the right information about our services.",
-        "I'd love to help you plan your next adventure! What would you like to know more about?",
-        "Thanks for your interest in City Discoverer! How can I make your travel dreams come true?",
-        "I'm here to help! Our team specializes in creating unforgettable travel experiences."
-      ];
-      return responses[Math.floor(Math.random() * responses.length)];
+    return "Thanks for your message! For detailed assistance with city planning and travel recommendations, I'd recommend checking out our Explorer Pass subscriptions or trying our free itinerary generator. Is there something specific I can help you with?";
+  }
+
+  // Function to prompt for contact information after 5 minutes
+  function scheduleContactPrompt(sessionId: string, ws: WebSocket) {
+    // Clear any existing timeout
+    if (agentResponseTimeouts.has(sessionId)) {
+      clearTimeout(agentResponseTimeouts.get(sessionId));
     }
+
+    // Set new timeout for 5 minutes
+    const timeout = setTimeout(() => {
+      if (ws.readyState === WebSocket.OPEN) {
+        const contactPrompt = {
+          id: `contact_prompt_${Date.now()}`,
+          message: "I'd be happy to connect you with one of our travel specialists for personalized assistance. Could you please share your email or phone number? We'll reach out within 24 hours to help plan your perfect trip.",
+          sender: 'agent' as const,
+          timestamp: new Date().toISOString(),
+          agentName: 'Support Agent'
+        };
+
+        // Store the contact prompt message
+        const session = publicChatSessions.get(sessionId);
+        if (session) {
+          session.messages.push(contactPrompt);
+          session.lastActivity = new Date().toISOString();
+          publicChatSessions.set(sessionId, session);
+        }
+
+        ws.send(JSON.stringify({
+          type: 'public_chat_message',
+          message: contactPrompt
+        }));
+      }
+      agentResponseTimeouts.delete(sessionId);
+    }, 5 * 60 * 1000); // 5 minutes
+
+    agentResponseTimeouts.set(sessionId, timeout);
   }
 
   // API Routes
