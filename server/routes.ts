@@ -101,10 +101,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // API Routes
 
-  // Get current user (authentication based on role)
+  // Get current user (authentication based on session)
   app.get("/api/user", async (req, res) => {
     try {
-      const userId = parseInt(req.query.userId as string) || 3; // Default to Maya Chen (ID: 3)
+      const userId = (req.session as any)?.userId || parseInt(req.query.userId as string);
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      
       const user = await storage.getUser(userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
@@ -185,6 +189,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const result = await storage.verifyAccessCode(code.toUpperCase());
       if (result.isValid && result.user) {
+        // Store user in session
+        (req.session as any).userId = result.user.id;
+        (req.session as any).user = result.user;
+        
         res.json({
           success: true,
           userId: result.user.id,
@@ -196,6 +204,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     } catch (error) {
       res.status(500).json({ message: "Verification failed" });
+    }
+  });
+
+  // Session management
+  app.post("/api/session/clear", async (req, res) => {
+    try {
+      (req.session as any).userId = null;
+      (req.session as any).user = null;
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to clear session" });
     }
   });
 
