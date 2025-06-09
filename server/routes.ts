@@ -639,24 +639,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const requestId = parseInt(req.params.id);
       const { message } = req.body;
       
+      console.log("Sending response to support request:", requestId, "Message:", message);
+      
       // Get the support request to find the user and trip
       const supportRequest = await storage.getSupportRequest(requestId);
       if (!supportRequest) {
+        console.log("Support request not found:", requestId);
         return res.status(404).json({ message: "Support request not found" });
       }
       
+      console.log("Found support request:", supportRequest);
+      
       // Create a chat message as the agent response
-      await storage.createChatMessage({
+      const chatMessage = await storage.createChatMessage({
         userId: supportRequest.userId,
         tripId: supportRequest.tripId,
         message: message,
         sender: "agent",
-        isRead: false,
-        createdAt: new Date().toISOString()
+        agentName: "Support Agent",
+        timestamp: new Date().toISOString(),
+        isRead: false
       });
       
+      console.log("Created chat message:", chatMessage);
+      
       // Create a notification for the customer
-      await storage.createNotification({
+      const notification = await storage.createNotification({
         userId: supportRequest.userId,
         tripId: supportRequest.tripId,
         title: "Response to Your Support Request",
@@ -665,17 +673,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         createdAt: new Date().toISOString()
       });
       
+      console.log("Created notification:", notification);
+      
       // Update support request status if it's still open
       if (supportRequest.status === "open") {
-        await storage.updateSupportRequest(requestId, { 
+        const updatedRequest = await storage.updateSupportRequest(requestId, { 
           status: "in_progress",
           assignedAgent: "Support Team"
         });
+        console.log("Updated support request:", updatedRequest);
       }
       
       res.json({ success: true, message: "Response sent successfully" });
     } catch (error) {
-      res.status(500).json({ message: "Failed to send response" });
+      console.error("Error sending response:", error);
+      res.status(500).json({ message: "Failed to send response", error: error.message });
     }
   });
 
