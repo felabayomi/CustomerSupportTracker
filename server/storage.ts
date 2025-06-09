@@ -20,6 +20,7 @@ export interface IStorage {
   getUserActiveTrip(userId: number): Promise<Trip | undefined>;
   createTrip(trip: InsertTrip): Promise<Trip>;
   updateTrip(id: number, updates: Partial<Trip>): Promise<Trip | undefined>;
+  deleteTrip(id: number): Promise<void>;
 
   // Activities
   getActivity(id: number): Promise<Activity | undefined>;
@@ -122,6 +123,10 @@ export class DatabaseStorage implements IStorage {
       .where(eq(trips.id, id))
       .returning();
     return trip || undefined;
+  }
+
+  async deleteTrip(id: number): Promise<void> {
+    await db.delete(trips).where(eq(trips.id, id));
   }
 
   async getActivity(id: number): Promise<Activity | undefined> {

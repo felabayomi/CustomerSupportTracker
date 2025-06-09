@@ -781,5 +781,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all trips for user
+  app.get("/api/trips", async (req, res) => {
+    try {
+      const userId = (req.session as any)?.userId || parseInt(req.query.userId as string) || 3;
+      const trips = await storage.getTripsByUser(userId);
+      res.json(trips);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get trips" });
+    }
+  });
+
+  // Create new trip
+  app.post("/api/trips", async (req, res) => {
+    try {
+      const userId = (req.session as any)?.userId || 3;
+      const tripData = { ...req.body, userId };
+      const trip = await storage.createTrip(tripData);
+      res.json(trip);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create trip" });
+    }
+  });
+
+  // Update trip
+  app.patch("/api/trips/:id", async (req, res) => {
+    try {
+      const tripId = parseInt(req.params.id);
+      const userId = (req.session as any)?.userId || 3;
+      
+      // Verify trip belongs to user
+      const existingTrip = await storage.getTrip(tripId);
+      if (!existingTrip || existingTrip.userId !== userId) {
+        return res.status(404).json({ message: "Trip not found" });
+      }
+      
+      const updatedTrip = await storage.updateTrip(tripId, req.body);
+      res.json(updatedTrip);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update trip" });
+    }
+  });
+
+  // Delete trip
+  app.delete("/api/trips/:id", async (req, res) => {
+    try {
+      const tripId = parseInt(req.params.id);
+      const userId = (req.session as any)?.userId || 3;
+      
+      // Verify trip belongs to user
+      const existingTrip = await storage.getTrip(tripId);
+      if (!existingTrip || existingTrip.userId !== userId) {
+        return res.status(404).json({ message: "Trip not found" });
+      }
+      
+      await storage.deleteTrip(tripId);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete trip" });
+    }
+  });
+
   return httpServer;
 }
