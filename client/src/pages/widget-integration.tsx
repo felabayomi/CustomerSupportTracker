@@ -163,79 +163,29 @@ export default function WidgetIntegration() {
       isOpen = !isOpen;
       window.style.display = isOpen ? 'flex' : 'none';
       
-      if (isOpen && !websocket) {
-        connectWebSocket();
+      if (isOpen && !httpFallbackActive) {
+        initializeChat();
         showWelcomeMessage();
       }
     });
 
-    // Connect WebSocket with fallback
-    function connectWebSocket() {
-      try {
-        const protocol = config.serverUrl.includes('https') ? 'wss:' : 'ws:';
-        const host = config.serverUrl.replace(/^https?:\\/\\//, '');
-        const wsUrl = \`\${protocol}//\${host}/public-ws\`;
-        
-        console.log('Attempting WebSocket connection to:', wsUrl);
-        websocket = new WebSocket(wsUrl);
-        
-        let connectionTimeout = setTimeout(() => {
-          if (websocket.readyState === WebSocket.CONNECTING) {
-            websocket.close();
-            useHttpFallback();
-          }
-        }, 5000);
-        
-        websocket.onopen = () => {
-          clearTimeout(connectionTimeout);
-          console.log('WebSocket connected successfully');
-          websocket.send(JSON.stringify({
-            type: 'join_public_chat',
-            sessionId: sessionId,
-            websiteUrl: window.location.hostname
-          }));
-        };
-        
-        websocket.onmessage = (event) => {
-          try {
-            const data = JSON.parse(event.data);
-            if (data.type === 'agent_message') {
-              addMessage(data.message, 'agent', data.agentName);
-            }
-          } catch (e) {
-            console.error('Error parsing WebSocket message:', e);
-          }
-        };
-        
-        websocket.onerror = (error) => {
-          clearTimeout(connectionTimeout);
-          console.error('WebSocket error:', error);
-          useHttpFallback();
-        };
-        
-        websocket.onclose = (event) => {
-          clearTimeout(connectionTimeout);
-          console.log('WebSocket closed:', event.code, event.reason);
-          
-          if (isOpen && event.code !== 1000) {
-            setTimeout(() => {
-              if (isOpen) {
-                connectWebSocket();
-              }
-            }, 3000);
-          }
-        };
-        
-      } catch (error) {
-        console.error('WebSocket connection failed:', error);
-        useHttpFallback();
-      }
+    // Initialize HTTP communication
+    function initializeChat() {
+      console.log('Initializing HTTP chat communication');
+      httpFallbackActive = true;
+      // Start polling for new messages
+      pollForResponses();
     }
     
     // HTTP fallback for messaging
+    let httpFallbackActive = false;
     function useHttpFallback() {
-      console.log('Using HTTP fallback for messaging');
-      addMessage('Connected via HTTP. You can send messages normally.', 'system');
+      if (!httpFallbackActive) {
+        console.log('Using HTTP fallback for messaging');
+        httpFallbackActive = true;
+        // Start polling for responses
+        pollForResponses();
+      }
     }
     
     // Send message via HTTP when WebSocket fails
@@ -260,27 +210,34 @@ export default function WidgetIntegration() {
     }
     
     // Poll for agent responses when using HTTP fallback
+    let lastMessageCount = 0;
     function pollForResponses() {
-      if (!isOpen || (websocket && websocket.readyState === WebSocket.OPEN)) return;
+      if (!isOpen || !httpFallbackActive) return;
       
       fetch(\`\${config.serverUrl}/api/public-chat/messages/\${sessionId}\`)
         .then(response => response.json())
         .then(data => {
-          if (data.messages) {
-            // Show new agent messages
-            data.messages.forEach(msg => {
-              if (msg.sender === 'agent' && !document.querySelector(\`[data-msg-id="\${msg.id}"]\`)) {
-                addMessage(msg.message, 'agent', msg.agentName);
+          if (data.messages && data.messages.length > lastMessageCount) {
+            // Show new messages since last poll
+            const newMessages = data.messages.slice(lastMessageCount);
+            newMessages.forEach(msg => {
+              if (msg.sender === 'agent') {
+                addMessage(msg.message, 'agent', msg.agentName, msg.id);
               }
             });
+            lastMessageCount = data.messages.length;
           }
           
-          // Continue polling
-          setTimeout(pollForResponses, 2000);
+          // Continue polling if still in HTTP mode
+          if (httpFallbackActive) {
+            setTimeout(pollForResponses, 2000);
+          }
         })
         .catch(error => {
           console.error('Polling failed:', error);
-          setTimeout(pollForResponses, 5000);
+          if (httpFallbackActive) {
+            setTimeout(pollForResponses, 5000);
+          }
         });
     }
 
@@ -333,17 +290,8 @@ export default function WidgetIntegration() {
       addMessage(text, 'user');
       input.value = '';
       
-      if (websocket && websocket.readyState === WebSocket.OPEN) {
-        websocket.send(JSON.stringify({
-          type: 'public_chat_message',
-          sessionId: sessionId,
-          message: text,
-          websiteUrl: window.location.hostname
-        }));
-      } else {
-        // Use HTTP fallback
-        sendMessageHttp(text);
-      }
+      // Always use HTTP communication
+      sendMessageHttp(text);
     }
 
     // Event listeners
