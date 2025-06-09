@@ -23,7 +23,13 @@ export default function AdminConsole() {
     phone: '',
     accessCode: '',
     preferences: '',
-    itineraries: ['']
+    itineraries: [''],
+    // Trip details
+    tripTitle: '',
+    destination: '',
+    startDate: '',
+    endDate: '',
+    tripDescription: ''
   });
 
   const queryClient = useQueryClient();
@@ -59,7 +65,12 @@ export default function AdminConsole() {
         phone: '',
         accessCode: '',
         preferences: '',
-        itineraries: ['']
+        itineraries: [''],
+        tripTitle: '',
+        destination: '',
+        startDate: '',
+        endDate: '',
+        tripDescription: ''
       });
     },
     onError: () => {
@@ -196,7 +207,12 @@ export default function AdminConsole() {
       phone: newCustomer.phone,
       accessCode: newCustomer.accessCode,
       preferences: newCustomer.preferences,
-      itineraries: newCustomer.itineraries.filter(itinerary => itinerary.trim() !== '')
+      itineraries: newCustomer.itineraries.filter(itinerary => itinerary.trim() !== ''),
+      tripTitle: newCustomer.tripTitle,
+      destination: newCustomer.destination,
+      startDate: newCustomer.startDate,
+      endDate: newCustomer.endDate,
+      tripDescription: newCustomer.tripDescription
     });
   };
 
@@ -899,6 +915,72 @@ export default function AdminConsole() {
                       onChange={(e) => setNewCustomer(prev => ({ ...prev, preferences: e.target.value }))}
                       className="h-20"
                     />
+                  </div>
+
+                  {/* Trip Details Section */}
+                  <div className="border-t pt-4 space-y-4">
+                    <h4 className="font-medium text-sm text-slate-900 flex items-center space-x-2">
+                      <MapPin className="w-4 h-4" />
+                      <span>Trip Management</span>
+                    </h4>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm font-medium">Trip Title</label>
+                        <Input 
+                          type="text" 
+                          placeholder="e.g., European Adventure"
+                          value={newCustomer.tripTitle}
+                          onChange={(e) => setNewCustomer(prev => ({ ...prev, tripTitle: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">Destination</label>
+                        <Input 
+                          type="text" 
+                          placeholder="e.g., Paris, France"
+                          value={newCustomer.destination}
+                          onChange={(e) => setNewCustomer(prev => ({ ...prev, destination: e.target.value }))}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm font-medium">Start Date</label>
+                        <Input 
+                          type="date" 
+                          value={newCustomer.startDate}
+                          onChange={(e) => setNewCustomer(prev => ({ ...prev, startDate: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">End Date</label>
+                        <Input 
+                          type="date" 
+                          value={newCustomer.endDate}
+                          onChange={(e) => setNewCustomer(prev => ({ ...prev, endDate: e.target.value }))}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium">Trip Description</label>
+                      <Textarea 
+                        placeholder="Brief description of the trip itinerary..."
+                        value={newCustomer.tripDescription}
+                        onChange={(e) => setNewCustomer(prev => ({ ...prev, tripDescription: e.target.value }))}
+                        className="h-16"
+                      />
+                    </div>
+
+                    <div className="bg-blue-50 p-3 rounded-lg">
+                      <p className="text-xs text-blue-700">
+                        <strong>Smart Check-ins:</strong> When you set accurate trip dates and destinations, 
+                        daily check-ins will automatically ask context-aware questions based on where the 
+                        customer should be on any given day.
+                      </p>
+                    </div>
                   </div>
 
                   <Button 

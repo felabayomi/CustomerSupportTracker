@@ -419,7 +419,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create customer and link access code
   app.post("/api/admin/create-customer", async (req, res) => {
     try {
-      const { name, email, phone, accessCode, preferences, itineraries } = req.body;
+      const { 
+        name, 
+        email, 
+        phone, 
+        accessCode, 
+        preferences, 
+        itineraries,
+        tripTitle,
+        destination,
+        startDate,
+        endDate,
+        tripDescription
+      } = req.body;
       
       // Create the user
       const user = await storage.createUser({
@@ -437,15 +449,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update the access code to link to this user
       await storage.updateAccessCodeUser(accessCode, user.id);
 
-      // Create trips for each itinerary
+      // Create main trip if trip details are provided
+      if (tripTitle && destination && startDate && endDate) {
+        await storage.createTrip({
+          userId: user.id,
+          title: tripTitle,
+          destination: destination,
+          startDate: startDate,
+          endDate: endDate,
+          status: "active",
+          description: tripDescription || `Trip to ${destination}`
+        });
+      }
+
+      // Create additional trips for each itinerary (legacy support)
       for (let i = 0; i < itineraries.length; i++) {
         if (itineraries[i].trim()) {
           await storage.createTrip({
             userId: user.id,
-            title: `Trip Scenario ${i + 1}`,
+            title: `Additional Scenario ${i + 1}`,
             destination: "Custom Itinerary",
-            startDate: new Date().toISOString().split('T')[0],
-            endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            startDate: startDate || new Date().toISOString().split('T')[0],
+            endDate: endDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
             status: "planned",
             description: `Custom itinerary: ${itineraries[i]}`
           });
