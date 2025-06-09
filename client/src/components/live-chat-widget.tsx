@@ -94,6 +94,34 @@ export function LiveChatWidget() {
     }
   }, [messages, typingIndicator]);
 
+  // Mark messages as read when chat is visible
+  useEffect(() => {
+    const markMessagesAsRead = async () => {
+      if (user?.id && trip?.id && messages.length > 0) {
+        try {
+          const response = await fetch(`/api/chat/read/${trip.id}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userId: user.id,
+            }),
+          });
+          
+          if (response.ok) {
+            // Update unread count
+            queryClient.invalidateQueries({ queryKey: ["/api/chat/unread-count"] });
+          }
+        } catch (error) {
+          console.error('Failed to mark messages as read:', error);
+        }
+      }
+    };
+
+    markMessagesAsRead();
+  }, [messages, user?.id, trip?.id, queryClient]);
+
   const formatTime = (timestamp: string) => {
     return new Date(timestamp).toLocaleTimeString("en-US", {
       hour: "numeric",
