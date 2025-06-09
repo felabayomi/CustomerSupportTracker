@@ -19,6 +19,7 @@ function Router() {
       <Route path="/agent-panel" component={AgentDashboard} />
       <Route path="/admin/felixdgreat" component={SecureAdmin} />
       <Route path="/admin/felixdgreat/console" component={AdminConsole} />
+      <Route path="/public-chat-demo" component={PublicChatDemo} />
       <Route component={NotFound} />
     </Switch>
   );
