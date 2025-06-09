@@ -9,7 +9,7 @@ import { FloatingChatButton } from "@/components/floating-chat-button";
 import { NotificationModal } from "@/components/notification-modal";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useQuery } from "@tanstack/react-query";
@@ -26,8 +26,8 @@ interface Trip {
 
 export default function Dashboard() {
   const [showNotifications, setShowNotifications] = useState(false);
-  const [showFloatingChat, setShowFloatingChat] = useState(false);
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
+  const chatRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   // Get all trips and set the first active trip as default
@@ -78,7 +78,7 @@ export default function Dashboard() {
           onTripSelect={setSelectedTrip}
         />
         
-        <div className="mb-6">
+        <div className="mb-6" ref={chatRef}>
           <LiveChatWidget />
         </div>
 
@@ -92,7 +92,12 @@ export default function Dashboard() {
       </main>
 
       <FloatingChatButton 
-        onClick={() => setShowFloatingChat(true)} 
+        onClick={() => {
+          chatRef.current?.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
+          });
+        }} 
       />
       
       <NotificationModal 
