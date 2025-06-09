@@ -1,11 +1,14 @@
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Edit, Plus, CalendarX, ConciergeBell, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { ModifyBookingModal } from "./modify-booking-modal";
 
 export function TripManagement() {
   const { toast } = useToast();
+  const [isModifyModalOpen, setIsModifyModalOpen] = useState(false);
 
   const handleAction = async (actionType: string, title: string) => {
     try {
@@ -45,7 +48,7 @@ export function TripManagement() {
           <Button
             variant="outline"
             className="h-auto p-4 flex-col items-start space-y-2 hover:border-primary transition-colors"
-            onClick={() => handleAction("modify booking", "Modify Booking")}
+            onClick={() => setIsModifyModalOpen(true)}
           >
             <Edit className="text-primary h-6 w-6" />
             <div className="text-left">
@@ -91,6 +94,11 @@ export function TripManagement() {
           </Button>
         </div>
       </CardContent>
+      
+      <ModifyBookingModal 
+        isOpen={isModifyModalOpen} 
+        onClose={() => setIsModifyModalOpen(false)} 
+      />
     </Card>
   );
 }
