@@ -21,6 +21,12 @@ export function LiveChatWidget() {
 
   const { data: messages = [] } = useQuery({
     queryKey: ["/api/chat/messages", trip?.id],
+    queryFn: async () => {
+      if (!trip?.id) return [];
+      const response = await fetch(`/api/chat/messages/${trip.id}`);
+      if (!response.ok) throw new Error('Failed to fetch messages');
+      return response.json();
+    },
     enabled: !!trip?.id,
   });
 
