@@ -258,7 +258,7 @@ export default function AdminConsole() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setLocation('/public-chat-demo')}
+                  onClick={() => window.open('/public-chat-demo', '_blank')}
                   className="text-xs"
                 >
                   Public Chat Demo
