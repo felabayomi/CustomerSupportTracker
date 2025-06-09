@@ -320,73 +320,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // HTTP fallback API for public chat messages
-  app.post('/api/public-chat/message', (req, res) => {
-    try {
-      const { sessionId, message, websiteUrl } = req.body;
-      
-      if (!sessionId || !message) {
-        return res.status(400).json({ error: 'Missing sessionId or message' });
-      }
 
-      // Create or update session
-      let session = publicChatSessions.get(sessionId);
-      if (!session) {
-        session = {
-          sessionId,
-          websiteUrl: websiteUrl || 'unknown',
-          isActive: true,
-          lastActivity: new Date().toISOString(),
-          messages: []
-        };
-      }
-
-      // Add user message
-      const userMessage = {
-        id: `user_${Date.now()}`,
-        message: message,
-        sender: 'user' as const,
-        timestamp: new Date().toISOString()
-      };
-      
-      session.messages.push(userMessage);
-      session.lastActivity = new Date().toISOString();
-      publicChatSessions.set(sessionId, session);
-
-      // Send auto-response
-      const agentResponse = {
-        id: `agent_${Date.now()}`,
-        message: getPublicAgentResponse(message),
-        sender: 'agent' as const,
-        timestamp: new Date().toISOString(),
-        agentName: 'City Discoverer'
-      };
-      
-      session.messages.push(agentResponse);
-      publicChatSessions.set(sessionId, session);
-
-      // Schedule contact prompt (no WebSocket needed for HTTP fallback)
-      setTimeout(() => {
-        if (publicChatSessions.has(sessionId)) {
-          const session = publicChatSessions.get(sessionId)!;
-          const contactMessage = {
-            id: `contact_${Date.now()}`,
-            message: "I'd love to help you further! Please share your email or phone number so I can send you personalized recommendations and contact you within 24 hours with exclusive deals.",
-            sender: 'agent' as const,
-            timestamp: new Date().toISOString(),
-            agentName: 'City Discoverer'
-          };
-          session.messages.push(contactMessage);
-          publicChatSessions.set(sessionId, session);
-        }
-      }, 300000); // 5 minutes
-
-      res.json({ success: true, response: agentResponse });
-    } catch (error) {
-      console.error('HTTP message error:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  });
 
   app.get('/api/public-chat/messages/:sessionId', (req, res) => {
     try {
@@ -424,6 +358,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Helper function for public chat agent responses
   function getPublicAgentResponse(userMessage: string): string {
     const message = userMessage.toLowerCase();
+    
+    // Human escalation requests (highest priority)
+    if (message.includes('agent') || message.includes('representative') || message.includes('human') || 
+        message.includes('live person') || message.includes('speak to someone') || message.includes('real person')) {
+      return "I understand you'd like to speak with a live agent. Let me connect you with one of our travel specialists who can provide personalized assistance. Please hold on while I transfer your chat.";
+    }
     
     // Activity-based inquiries (check these first for more specific matches)
     if (message.includes('hotel') || message.includes('accommodation') || message.includes('stay')) {
