@@ -668,69 +668,6 @@ export default function AdminConsole() {
               </CardContent>
             </Card>
           </TabsContent>
-            </div>
-            
-            <Card>
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  {[
-                    {
-                      name: "Maya Chen",
-                      email: "maya.chen@email.com",
-                      trip: "San Francisco City Explorer",
-                      agent: "Sarah Anderson",
-                      status: "active",
-                      avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&h=150&fit=crop&crop=face"
-                    },
-                    {
-                      name: "James Rodriguez",
-                      email: "james.r@email.com",
-                      trip: "New York Business Trip", 
-                      agent: "Michael Brown",
-                      status: "active",
-                      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face"
-                    },
-                    {
-                      name: "Emily Davis",
-                      email: "emily.davis@email.com",
-                      trip: "Chicago Food Tour",
-                      agent: "Unassigned",
-                      status: "pending",
-                      avatar: "https://images.unsplash.com/photo-1494790108755-2616b9f90882?w=150&h=150&fit=crop&crop=face"
-                    }
-                  ].map((traveler, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center space-x-4">
-                        <Avatar className="h-12 w-12">
-                          <AvatarImage src={traveler.avatar} alt={traveler.name} />
-                          <AvatarFallback>{traveler.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <h4 className="font-semibold text-slate-900">{traveler.name}</h4>
-                          <p className="text-sm text-slate-600">{traveler.email}</p>
-                          <p className="text-sm text-slate-500">{traveler.trip}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center space-x-6">
-                        <div className="text-center">
-                          <p className="text-sm text-slate-600">Agent</p>
-                          <p className="font-medium">{traveler.agent}</p>
-                        </div>
-                        <div className="text-center">
-                          <p className="text-sm text-slate-600">Status</p>
-                          <Badge variant={traveler.status === 'active' ? 'default' : 'secondary'}>
-                            {traveler.status}
-                          </Badge>
-                        </div>
-                        <Button variant="outline" size="sm">View Details</Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
           
           <TabsContent value="assignments" className="space-y-4">
             <div className="flex justify-between items-center">

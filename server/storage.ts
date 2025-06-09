@@ -644,6 +644,14 @@ export class MemStorage implements IStorage {
     return updatedTrip;
   }
 
+  async deleteTrip(id: number): Promise<void> {
+    this.trips.delete(id);
+    // Also delete related activities
+    Array.from(this.activities.entries())
+      .filter(([_, activity]) => activity.tripId === id)
+      .forEach(([activityId, _]) => this.activities.delete(activityId));
+  }
+
   // Activities
   async getActivity(id: number): Promise<Activity | undefined> {
     return this.activities.get(id);
