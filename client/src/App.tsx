@@ -13,6 +13,7 @@ import SecureAdmin from "@/pages/secure-admin";
 import PublicChatDemo from "@/pages/public-chat-demo";
 import PublicChatInbox from "@/pages/public-chat-inbox";
 import WidgetIntegration from "@/pages/widget-integration";
+import SupportRequests from "@/pages/support-requests";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -20,6 +21,7 @@ function Router() {
     <Switch>
       <Route path="/" component={AccessPortal} />
       <Route path="/dashboard" component={Dashboard} />
+      <Route path="/support-requests" component={SupportRequests} />
       <Route path="/agent-panel" component={AgentDashboard} />
       <Route path="/admin/felixdgreat" component={SecureAdmin} />
       <Route path="/admin/felixdgreat/console" component={AdminConsole} />
