@@ -18,6 +18,32 @@ export function CheckInFeedback() {
     queryKey: ["/api/support-requests"],
   });
 
+  const { data: activeTrip } = useQuery({
+    queryKey: ["/api/trip/active"],
+  });
+
+  const { data: trips } = useQuery({
+    queryKey: ["/api/trips"],
+  });
+
+  // Generate dynamic location text for check-in
+  const getLocationText = () => {
+    if (activeTrip?.destination) {
+      return activeTrip.destination;
+    }
+    
+    if (trips && trips.length > 0) {
+      // If multiple trips, use the first active/current one or most recent
+      const currentTrip = trips.find((trip: any) => trip.status === 'active') || trips[0];
+      if (currentTrip?.destination) {
+        return currentTrip.destination;
+      }
+    }
+    
+    // Fallback to generic text if no destination found
+    return "your travel";
+  };
+
   const handleRatingSelect = async (rating: number) => {
     setSelectedRating(rating);
     
@@ -127,7 +153,7 @@ export function CheckInFeedback() {
           <h3 className="text-lg font-semibold text-slate-900 mb-4">Daily Check-In</h3>
           <div className="space-y-4">
             <div className="p-4 bg-slate-50 rounded-lg">
-              <p className="text-sm text-slate-600 mb-3">How is your San Francisco experience going so far?</p>
+              <p className="text-sm text-slate-600 mb-3">How is your {getLocationText()} experience going so far?</p>
               <div className="flex space-x-2">
                 <Button
                   variant={selectedRating === 5 ? "default" : "outline"}
