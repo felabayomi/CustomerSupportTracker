@@ -194,10 +194,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   };
   publicChatSessions.set(testSession.sessionId, testSession);
 
-  // Serve embeddable chat widget
-  app.get("/city-discoverer-chat.js", (req, res) => {
-    res.sendFile(path.join(__dirname, "../client/public/city-discoverer-chat.js"));
-  });
+
 
   // Public chat API routes
   app.get("/api/public-chat/sessions", (req, res) => {
