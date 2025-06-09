@@ -12,6 +12,7 @@ import AdminTripManagement from "@/pages/admin-trip-management";
 import SecureAdmin from "@/pages/secure-admin";
 import PublicChatDemo from "@/pages/public-chat-demo";
 import PublicChatInbox from "@/pages/public-chat-inbox";
+import WidgetIntegration from "@/pages/widget-integration";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -26,6 +27,7 @@ function Router() {
       <Route path="/admin/felixdgreat/trip-management" component={AdminTripManagement} />
       <Route path="/admin/felixdgreat/public-chat-inbox" component={PublicChatInbox} />
       <Route path="/admin/felixdgreat/public-chat-demo" component={PublicChatDemo} />
+      <Route path="/admin/felixdgreat/widget-integration" component={WidgetIntegration} />
       <Route path="/public-chat-demo" component={PublicChatDemo} />
       <Route component={NotFound} />
     </Switch>

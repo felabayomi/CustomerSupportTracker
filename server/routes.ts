@@ -7,6 +7,7 @@ import {
   insertFeedbackSchema, insertActivitySchema 
 } from "@shared/schema";
 import { z } from "zod";
+import path from "path";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -192,6 +193,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     ]
   };
   publicChatSessions.set(testSession.sessionId, testSession);
+
+  // Serve embeddable chat widget
+  app.get("/city-discoverer-chat.js", (req, res) => {
+    res.sendFile(path.join(__dirname, "../client/public/city-discoverer-chat.js"));
+  });
 
   // Public chat API routes
   app.get("/api/public-chat/sessions", (req, res) => {
