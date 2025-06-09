@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ChevronDown, ChevronUp, Calendar, MapPin } from "lucide-react";
+import { ChevronDown, ChevronUp, Calendar, MapPin, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
 
 interface Trip {
@@ -98,7 +98,26 @@ export function TripSelector({ selectedTripId, onTripSelect }: TripSelectorProps
               </div>
             </div>
             {selectedTrip.description && (
-              <p className="text-slate-600 text-sm mt-2">{selectedTrip.description}</p>
+              <div className="mt-3">
+                {selectedTrip.description.includes('https://') ? (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => {
+                      const urlMatch = selectedTrip.description?.match(/https:\/\/[^\s]+/);
+                      if (urlMatch) {
+                        window.open(urlMatch[0], '_blank');
+                      }
+                    }}
+                    className="flex items-center space-x-1"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    <span>View Itinerary</span>
+                  </Button>
+                ) : (
+                  <p className="text-slate-600 text-sm">{selectedTrip.description}</p>
+                )}
+              </div>
             )}
           </div>
         )}
