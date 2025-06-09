@@ -78,17 +78,17 @@ export default function Dashboard() {
           onTripSelect={setSelectedTrip}
         />
         
-        <div className="grid lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <LiveChatWidget />
-          </div>
-          <div>
-            <SupportPanel />
-          </div>
+        <div className="mb-6">
+          <LiveChatWidget />
         </div>
 
         <TripManagement />
         <CheckInFeedback />
+        
+        {/* Emergency Support at bottom */}
+        <div className="mt-8">
+          <SupportPanel />
+        </div>
       </main>
 
       <FloatingChatButton 
