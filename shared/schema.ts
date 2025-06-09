@@ -187,7 +187,7 @@ export const insertActivitySchema = createInsertSchema(activities).omit({ id: tr
 export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({ id: true });
 export const insertSupportRequestSchema = createInsertSchema(supportRequests).omit({ id: true, userId: true, createdAt: true });
 export const insertNotificationSchema = createInsertSchema(notifications).omit({ id: true });
-export const insertFeedbackSchema = createInsertSchema(feedbacks).omit({ id: true });
+export const insertFeedbackSchema = createInsertSchema(feedbacks).omit({ id: true, userId: true, date: true });
 export const insertAccessCodeSchema = createInsertSchema(accessCodes).omit({ id: true });
 
 // Types

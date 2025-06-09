@@ -1032,17 +1032,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create feedback
   app.post("/api/feedback", async (req, res) => {
     try {
+      // Validate input with schema (excludes userId and date)
       const data = insertFeedbackSchema.parse(req.body);
+      const userId = (req.session as any)?.userId || parseInt(req.query.userId as string) || 6; // Default to Katty Hensen
+      
       const feedback = await storage.createFeedback({
         ...data,
-        userId: 1, // Mock user ID 1
+        userId,
         date: new Date().toISOString().split('T')[0]
       });
+      
       res.json(feedback);
     } catch (error) {
       if (error instanceof z.ZodError) {
         res.status(400).json({ message: "Invalid feedback data", errors: error.errors });
       } else {
+        console.error('Feedback creation error:', error);
         res.status(500).json({ message: "Failed to create feedback" });
       }
     }
