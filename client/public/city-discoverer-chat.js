@@ -1,10 +1,7 @@
 (function() {
   'use strict';
 
-  // Configuration - Update these URLs when deploying
-  const CHAT_SERVER_URL = window.location.protocol === 'https:' ? 
-    'wss://YOUR_REPLIT_DOMAIN.replit.app' : 
-    'ws://localhost:5000';
+  // Configuration - HTTP-only for reliability
   const API_BASE_URL = window.location.protocol === 'https:' ? 
     'https://YOUR_REPLIT_DOMAIN.replit.app' : 
     'http://localhost:5000';
@@ -26,17 +23,14 @@
       this.isOpen = false;
       this.isMinimized = false;
       this.unreadCount = 0;
-      this.ws = null;
-      this.reconnectAttempts = 0;
-      this.maxReconnectAttempts = 5;
-
+      this.isConnected = true; // HTTP-only communication
+      
       this.init();
     }
 
     init() {
       this.createStyles();
       this.createWidget();
-      this.connectWebSocket();
       this.addWelcomeMessage();
     }
 
@@ -318,71 +312,7 @@
       this.widget = widget;
     }
 
-    connectWebSocket() {
-      const wsUrl = `${CHAT_SERVER_URL}/public-ws`;
-      
-      try {
-        this.ws = new WebSocket(wsUrl);
-        
-        this.ws.onopen = () => {
-          console.log('City Discoverer Chat: Connected');
-          this.reconnectAttempts = 0;
-          this.updateConnectionStatus(true);
-          
-          // Send session info
-          this.ws.send(JSON.stringify({
-            type: 'init_public_session',
-            sessionId: this.sessionId,
-            websiteUrl: this.options.websiteUrl
-          }));
-        };
-
-        this.ws.onmessage = (event) => {
-          try {
-            const data = JSON.parse(event.data);
-            if (data.type === 'public_chat_message') {
-              this.addMessage(data.message);
-            }
-          } catch (error) {
-            console.error('City Discoverer Chat: Message error:', error);
-          }
-        };
-
-        this.ws.onclose = () => {
-          console.log('City Discoverer Chat: Disconnected');
-          this.updateConnectionStatus(false);
-          this.scheduleReconnect();
-        };
-
-        this.ws.onerror = (error) => {
-          console.error('City Discoverer Chat: Connection error:', error);
-          this.updateConnectionStatus(false);
-        };
-
-      } catch (error) {
-        console.error('City Discoverer Chat: Failed to connect:', error);
-        this.updateConnectionStatus(false);
-        this.scheduleReconnect();
-      }
-    }
-
-    scheduleReconnect() {
-      if (this.reconnectAttempts < this.maxReconnectAttempts) {
-        this.reconnectAttempts++;
-        const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
-        setTimeout(() => this.connectWebSocket(), delay);
-      }
-    }
-
-    updateConnectionStatus(connected) {
-      const status = this.widget.querySelector('.cd-connection-status');
-      if (connected) {
-        status.className = 'cd-connection-status connected';
-      } else {
-        status.className = 'cd-connection-status disconnected';
-        status.textContent = 'Connecting...';
-      }
-    }
+    // HTTP-only communication - no WebSocket needed
 
     addWelcomeMessage() {
       this.addMessage({
@@ -421,11 +351,11 @@
       `).join('');
     }
 
-    sendMessage() {
+    async sendMessage() {
       const input = this.widget.querySelector('input');
       const message = input.value.trim();
       
-      if (!message || !this.ws || this.ws.readyState !== WebSocket.OPEN) {
+      if (!message) {
         return;
       }
 
@@ -439,13 +369,43 @@
       this.addMessage(userMessage);
       input.value = '';
 
-      // Send to server
-      this.ws.send(JSON.stringify({
-        type: 'public_chat_message',
-        sessionId: this.sessionId,
-        message,
-        websiteUrl: this.options.websiteUrl
-      }));
+      try {
+        // Send via HTTP API
+        const response = await fetch(`${API_BASE_URL}/api/public-chat/message`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            sessionId: this.sessionId,
+            message,
+            websiteUrl: this.options.websiteUrl
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.response) {
+            this.addMessage(data.response);
+          }
+        } else {
+          // Show error message
+          this.addMessage({
+            id: `error_${Date.now()}`,
+            message: 'Sorry, there was an issue sending your message. Please try again.',
+            sender: 'system',
+            timestamp: new Date().toISOString()
+          });
+        }
+      } catch (error) {
+        console.error('City Discoverer Chat: Failed to send message:', error);
+        this.addMessage({
+          id: `error_${Date.now()}`,
+          message: 'Chat service temporarily unavailable. Please try again in a moment.',
+          sender: 'system',
+          timestamp: new Date().toISOString()
+        });
+      }
     }
 
     handleKeyPress(event) {
