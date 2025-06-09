@@ -592,6 +592,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create support request
   app.post("/api/support-requests", async (req, res) => {
     try {
+      console.log("Support request body:", JSON.stringify(req.body, null, 2));
       const data = insertSupportRequestSchema.parse(req.body);
       const request = await storage.createSupportRequest({
         ...data,
@@ -611,7 +612,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json(request);
     } catch (error) {
+      console.log("Support request error:", error);
       if (error instanceof z.ZodError) {
+        console.log("Validation errors:", error.errors);
         res.status(400).json({ message: "Invalid request data", errors: error.errors });
       } else {
         res.status(500).json({ message: "Failed to create support request" });
