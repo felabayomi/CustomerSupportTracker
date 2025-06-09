@@ -842,5 +842,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin: Get all users
+  app.get("/api/admin/users", async (req, res) => {
+    try {
+      const travelers = await storage.getAllTravelers();
+      res.json(travelers);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get users" });
+    }
+  });
+
+  // Admin: Get all trips
+  app.get("/api/admin/trips", async (req, res) => {
+    try {
+      const allUsers = await storage.getAllTravelers();
+      const allTrips = [];
+      
+      for (const user of allUsers) {
+        const userTrips = await storage.getTripsByUser(user.id);
+        const tripsWithUserName = userTrips.map(trip => ({
+          ...trip,
+          userName: user.name || user.username
+        }));
+        allTrips.push(...tripsWithUserName);
+      }
+      
+      res.json(allTrips);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get trips" });
+    }
+  });
+
+  // Admin: Create trip for user
+  app.post("/api/admin/trips", async (req, res) => {
+    try {
+      const trip = await storage.createTrip(req.body);
+      res.json(trip);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create trip" });
+    }
+  });
+
+  // Admin: Update trip
+  app.patch("/api/admin/trips/:id", async (req, res) => {
+    try {
+      const tripId = parseInt(req.params.id);
+      const updatedTrip = await storage.updateTrip(tripId, req.body);
+      res.json(updatedTrip);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update trip" });
+    }
+  });
+
+  // Admin: Delete trip
+  app.delete("/api/admin/trips/:id", async (req, res) => {
+    try {
+      const tripId = parseInt(req.params.id);
+      await storage.deleteTrip(tripId);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete trip" });
+    }
+  });
+
   return httpServer;
 }

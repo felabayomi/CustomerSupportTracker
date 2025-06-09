@@ -26,22 +26,52 @@ export function CheckInFeedback() {
     queryKey: ["/api/trips"],
   });
 
-  // Generate dynamic location text for check-in
-  const getLocationText = () => {
-    if (activeTrip?.destination) {
-      return activeTrip.destination;
-    }
+  // Generate intelligent location and date context for check-in
+  const getCheckInContext = () => {
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
     
+    // Check all trips to find which one the user should be on today
     if (trips && trips.length > 0) {
-      // If multiple trips, use the first active/current one or most recent
-      const currentTrip = trips.find((trip: any) => trip.status === 'active') || trips[0];
-      if (currentTrip?.destination) {
-        return currentTrip.destination;
+      for (const trip of trips) {
+        const startDate = new Date(trip.startDate + 'T12:00:00');
+        const endDate = new Date(trip.endDate + 'T12:00:00');
+        
+        // If today is within the trip dates
+        if (today >= startDate && today <= endDate) {
+          const dayNumber = Math.ceil((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+          const totalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+          
+          return {
+            location: trip.destination,
+            isOnTrip: true,
+            dayNumber,
+            totalDays,
+            tripTitle: trip.title,
+            question: `How is your ${trip.destination} experience going so far? (Day ${dayNumber} of ${totalDays})`
+          };
+        }
+        
+        // If trip is starting soon (within 7 days)
+        const daysUntilTrip = Math.ceil((startDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        if (daysUntilTrip > 0 && daysUntilTrip <= 7) {
+          return {
+            location: trip.destination,
+            isOnTrip: false,
+            daysUntilTrip,
+            tripTitle: trip.title,
+            question: `How are your preparations for ${trip.destination} going? (Departing in ${daysUntilTrip} day${daysUntilTrip !== 1 ? 's' : ''})`
+          };
+        }
       }
     }
     
-    // Fallback to generic text if no destination found
-    return "your travel";
+    // Fallback for no active trips
+    return {
+      location: "your travel",
+      isOnTrip: false,
+      question: "How are your travel plans going so far?"
+    };
   };
 
   const handleRatingSelect = async (rating: number) => {
@@ -153,7 +183,7 @@ export function CheckInFeedback() {
           <h3 className="text-lg font-semibold text-slate-900 mb-4">Daily Check-In</h3>
           <div className="space-y-4">
             <div className="p-4 bg-slate-50 rounded-lg">
-              <p className="text-sm text-slate-600 mb-3">How is your {getLocationText()} experience going so far?</p>
+              <p className="text-sm text-slate-600 mb-3">{getCheckInContext().question}</p>
               <div className="flex space-x-2">
                 <Button
                   variant={selectedRating === 5 ? "default" : "outline"}
