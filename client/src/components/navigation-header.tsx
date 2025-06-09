@@ -36,7 +36,7 @@ export function NavigationHeader({ onShowNotifications }: NavigationHeaderProps)
               <Compass className="text-white text-lg" />
             </div>
             <div>
-              <h1 className="text-xl font-semibold text-slate-900">Expedition America</h1>
+              <h1 className="text-xl font-semibold text-slate-900">City Discoverer</h1>
               <p className="text-xs text-slate-500">Traveler Support Hub</p>
             </div>
           </Link>

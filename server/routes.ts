@@ -156,15 +156,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } else if (lowerMessage.includes('trip') || lowerMessage.includes('travel') || lowerMessage.includes('vacation')) {
       return "Exciting! We offer amazing travel experiences across America. From national parks to city adventures, we can help you plan the perfect trip. What type of experience interests you most?";
     } else if (lowerMessage.includes('contact') || lowerMessage.includes('phone') || lowerMessage.includes('call')) {
-      return "You can reach us at 1-800-EXPEDITION or email us at hello@expeditionamerica.com. Our team is available 24/7 to help plan your next adventure!";
+      return "You can reach us at 1-800-CITY-DISC or email us at hello@citydiscoverer.com. Our team is available 24/7 to help plan your next adventure!";
     } else if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('hey')) {
-      return "Hello! Welcome to Expedition America. I'm here to help you discover amazing travel experiences. How can I assist you today?";
+      return "Hello! Welcome to City Discoverer. I'm here to help you discover amazing travel experiences. How can I assist you today?";
     } else {
       const responses = [
         "Thanks for reaching out! I'm here to help you with any questions about our travel experiences.",
         "Great question! Let me connect you with the right information about our services.",
         "I'd love to help you plan your next adventure! What would you like to know more about?",
-        "Thanks for your interest in Expedition America! How can I make your travel dreams come true?",
+        "Thanks for your interest in City Discoverer! How can I make your travel dreams come true?",
         "I'm here to help! Our team specializes in creating unforgettable travel experiences."
       ];
       return responses[Math.floor(Math.random() * responses.length)];

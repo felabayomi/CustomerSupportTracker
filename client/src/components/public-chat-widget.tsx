@@ -29,7 +29,7 @@ export function PublicChatWidget({
   agentName = "Support Agent",
   agentAvatar,
   brandColor = "#3b82f6",
-  companyName = "Expedition America",
+  companyName = "City Discoverer",
   welcomeMessage = "Hi! How can we help you today?"
 }: PublicChatWidgetProps) {
   const [isOpen, setIsOpen] = useState(false);

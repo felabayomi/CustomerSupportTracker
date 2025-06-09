@@ -14,16 +14,16 @@ export default function PublicChatDemo() {
             </p>
             <div className="grid md:grid-cols-3 gap-8 text-left">
               <div className="bg-white p-6 rounded-lg shadow-lg">
-                <h3 className="text-lg font-semibold mb-3">National Parks</h3>
-                <p className="text-gray-600">Explore stunning landscapes and wildlife in America's most beautiful national parks.</p>
+                <h3 className="text-lg font-semibold mb-3">City Walking Tours</h3>
+                <p className="text-gray-600">Discover hidden gems and local hotspots with our expert city guides.</p>
               </div>
               <div className="bg-white p-6 rounded-lg shadow-lg">
-                <h3 className="text-lg font-semibold mb-3">City Adventures</h3>
+                <h3 className="text-lg font-semibold mb-3">Urban Adventures</h3>
                 <p className="text-gray-600">Experience vibrant cities with guided tours, local cuisine, and cultural attractions.</p>
               </div>
               <div className="bg-white p-6 rounded-lg shadow-lg">
-                <h3 className="text-lg font-semibold mb-3">Custom Journeys</h3>
-                <p className="text-gray-600">Create personalized itineraries tailored to your interests and travel style.</p>
+                <h3 className="text-lg font-semibold mb-3">Custom City Tours</h3>
+                <p className="text-gray-600">Create personalized city itineraries tailored to your interests and travel style.</p>
               </div>
             </div>
           </div>
@@ -53,8 +53,8 @@ export default function PublicChatDemo() {
             </p>
             
             <div className="bg-gray-900 text-green-400 p-4 rounded-lg text-sm font-mono overflow-x-auto">
-              <pre>{`<!-- Expedition America Chat Widget -->
-<div id="expedition-chat"></div>
+              <pre>{`<!-- City Discoverer Chat Widget -->
+<div id="city-discoverer-chat"></div>
 <script>
 (function() {
   // Load React and required dependencies
@@ -65,11 +65,11 @@ export default function PublicChatDemo() {
     reactDomScript.src = 'https://unpkg.com/react-dom@18/umd/react-dom.production.min.js';
     reactDomScript.onload = function() {
       // Chat widget configuration
-      window.ExpeditionChatConfig = {
-        companyName: 'Expedition America',
+      window.CityDiscovererChatConfig = {
+        companyName: 'City Discoverer',
         agentName: 'Travel Specialist',
         brandColor: '#3b82f6',
-        welcomeMessage: 'Hi! How can we help you plan your next adventure?'
+        welcomeMessage: 'Hi! How can we help you plan your next city adventure?'
       };
       
       // Load the chat widget
@@ -99,10 +99,10 @@ export default function PublicChatDemo() {
 
       {/* The actual public chat widget */}
       <PublicChatWidget
-        companyName="Expedition America"
+        companyName="City Discoverer"
         agentName="Travel Specialist"
         brandColor="#3b82f6"
-        welcomeMessage="Hi! How can we help you plan your next adventure?"
+        welcomeMessage="Hi! How can we help you plan your next city adventure?"
       />
     </div>
   );
