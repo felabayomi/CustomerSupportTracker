@@ -7,12 +7,14 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useLocation } from "wouter";
 
 export function CheckInFeedback() {
   const [selectedRating, setSelectedRating] = useState<number | null>(null);
   const [feedback, setFeedback] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
 
   const { data: supportRequests } = useQuery({
     queryKey: ["/api/support-requests"],
@@ -256,7 +258,11 @@ export function CheckInFeedback() {
               </div>
             )}
             
-            <Button variant="ghost" className="w-full mt-4 text-primary hover:text-blue-700">
+            <Button 
+              variant="ghost" 
+              className="w-full mt-4 text-primary hover:text-blue-700"
+              onClick={() => setLocation('/support-requests')}
+            >
               View All Resolutions 
               <ArrowRight className="h-4 w-4 ml-1" />
             </Button>
