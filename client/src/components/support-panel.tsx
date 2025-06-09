@@ -14,22 +14,69 @@ export function SupportPanel() {
   });
 
   const handleEmergencyCall = async () => {
-    try {
-      await apiRequest("POST", "/api/emergency/sos", {
-        description: "Emergency call requested"
+    const phoneOptions = [
+      { number: "+1 240 664 2270", label: "City Discoverer Support", description: "24/7 Travel Support" },
+      { number: "911", label: "Emergency Services (US)", description: "Police, Fire, Medical" },
+      { number: "112", label: "Emergency Services (EU)", description: "Police, Fire, Medical" }
+    ];
+
+    const selectedOption = await new Promise((resolve) => {
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+      modal.innerHTML = `
+        <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+          <h3 class="text-lg font-semibold text-red-900 mb-4">Choose Emergency Contact</h3>
+          <div class="space-y-3">
+            ${phoneOptions.map((option, index) => `
+              <button class="emergency-option w-full text-left p-3 border border-red-200 rounded-lg hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500" data-index="${index}">
+                <div class="font-medium text-gray-900">${option.label}</div>
+                <div class="text-sm text-gray-600">${option.number}</div>
+                <div class="text-xs text-gray-500">${option.description}</div>
+              </button>
+            `).join('')}
+          </div>
+          <button class="cancel-btn mt-4 w-full px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+        </div>
+      `;
+
+      document.body.appendChild(modal);
+
+      modal.addEventListener('click', (e) => {
+        const target = e.target as HTMLElement;
+        if (target.classList.contains('emergency-option') || target.closest('.emergency-option')) {
+          const optionElement = target.closest('.emergency-option') as HTMLElement;
+          const index = parseInt(optionElement.dataset.index!);
+          resolve(phoneOptions[index]);
+          document.body.removeChild(modal);
+        } else if (target.classList.contains('cancel-btn')) {
+          resolve(null);
+          document.body.removeChild(modal);
+        }
       });
-      
-      toast({
-        title: "🚨 Emergency Call Initiated",
-        description: "Connecting you to emergency support now...",
-        variant: "destructive",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to initiate emergency call. Please try again.",
-        variant: "destructive",
-      });
+    });
+
+    if (selectedOption) {
+      try {
+        await apiRequest("POST", "/api/emergency/sos", {
+          description: `Emergency call requested to ${selectedOption.label}`,
+          phoneNumber: selectedOption.number
+        });
+
+        // Open phone dialer
+        window.location.href = `tel:${selectedOption.number}`;
+        
+        toast({
+          title: "Emergency Call Initiated",
+          description: `Calling ${selectedOption.label} at ${selectedOption.number}`,
+          variant: "destructive",
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to initiate emergency call. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
