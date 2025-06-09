@@ -169,27 +169,119 @@ export default function WidgetIntegration() {
       }
     });
 
-    // Connect WebSocket
+    // Connect WebSocket with fallback
     function connectWebSocket() {
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = \`\${protocol}//\${config.serverUrl.replace(/^https?:\\/\\//, '')}/ws\`;
-      
-      websocket = new WebSocket(wsUrl);
-      
-      websocket.onopen = () => {
-        websocket.send(JSON.stringify({
-          type: 'join_public_chat',
+      try {
+        const protocol = config.serverUrl.includes('https') ? 'wss:' : 'ws:';
+        const host = config.serverUrl.replace(/^https?:\\/\\//, '');
+        const wsUrl = \`\${protocol}//\${host}/public-ws\`;
+        
+        console.log('Attempting WebSocket connection to:', wsUrl);
+        websocket = new WebSocket(wsUrl);
+        
+        let connectionTimeout = setTimeout(() => {
+          if (websocket.readyState === WebSocket.CONNECTING) {
+            websocket.close();
+            useHttpFallback();
+          }
+        }, 5000);
+        
+        websocket.onopen = () => {
+          clearTimeout(connectionTimeout);
+          console.log('WebSocket connected successfully');
+          websocket.send(JSON.stringify({
+            type: 'join_public_chat',
+            sessionId: sessionId,
+            websiteUrl: window.location.hostname
+          }));
+        };
+        
+        websocket.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            if (data.type === 'agent_message') {
+              addMessage(data.message, 'agent', data.agentName);
+            }
+          } catch (e) {
+            console.error('Error parsing WebSocket message:', e);
+          }
+        };
+        
+        websocket.onerror = (error) => {
+          clearTimeout(connectionTimeout);
+          console.error('WebSocket error:', error);
+          useHttpFallback();
+        };
+        
+        websocket.onclose = (event) => {
+          clearTimeout(connectionTimeout);
+          console.log('WebSocket closed:', event.code, event.reason);
+          
+          if (isOpen && event.code !== 1000) {
+            setTimeout(() => {
+              if (isOpen) {
+                connectWebSocket();
+              }
+            }, 3000);
+          }
+        };
+        
+      } catch (error) {
+        console.error('WebSocket connection failed:', error);
+        useHttpFallback();
+      }
+    }
+    
+    // HTTP fallback for messaging
+    function useHttpFallback() {
+      console.log('Using HTTP fallback for messaging');
+      addMessage('Connected via HTTP. You can send messages normally.', 'system');
+    }
+    
+    // Send message via HTTP when WebSocket fails
+    function sendMessageHttp(message) {
+      fetch(\`\${config.serverUrl}/api/public-chat/message\`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           sessionId: sessionId,
+          message: message,
           websiteUrl: window.location.hostname
-        }));
-      };
-      
-      websocket.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        if (data.type === 'agent_message') {
-          addMessage(data.message, 'agent', data.agentName);
+        })
+      }).then(response => {
+        if (response.ok) {
+          // Poll for agent responses
+          pollForResponses();
         }
-      };
+      }).catch(error => {
+        console.error('HTTP message send failed:', error);
+        addMessage('Message could not be sent. Please try again.', 'system');
+      });
+    }
+    
+    // Poll for agent responses when using HTTP fallback
+    function pollForResponses() {
+      if (!isOpen || (websocket && websocket.readyState === WebSocket.OPEN)) return;
+      
+      fetch(\`\${config.serverUrl}/api/public-chat/messages/\${sessionId}\`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.messages) {
+            // Show new agent messages
+            data.messages.forEach(msg => {
+              if (msg.sender === 'agent' && !document.querySelector(\`[data-msg-id="\${msg.id}"]\`)) {
+                addMessage(msg.message, 'agent', msg.agentName);
+              }
+            });
+          }
+          
+          // Continue polling
+          setTimeout(pollForResponses, 2000);
+        })
+        .catch(error => {
+          console.error('Polling failed:', error);
+          setTimeout(pollForResponses, 5000);
+        });
     }
 
     // Show welcome message
@@ -200,21 +292,33 @@ export default function WidgetIntegration() {
     // Add message to chat
     function addMessage(text, sender, agentName = null) {
       const messageDiv = document.createElement('div');
+      let styles = '';
+      
+      if (sender === 'user') {
+        styles = 'background: ' + config.brandColor + '; color: white; margin-left: auto; text-align: right;';
+      } else if (sender === 'system') {
+        styles = 'background: #fee; color: #c53030; margin: 0 auto; text-align: center; font-size: 14px; border: 1px solid #fbb;';
+      } else {
+        styles = 'background: white; color: #333; margin-right: auto; border: 1px solid #e9ecef;';
+      }
+      
       messageDiv.style.cssText = \`
         margin-bottom: 12px;
         padding: 8px 12px;
         border-radius: 12px;
         max-width: 80%;
-        \${sender === 'user' ? 
-          'background: ' + config.brandColor + '; color: white; margin-left: auto; text-align: right;' : 
-          'background: white; color: #333; margin-right: auto; border: 1px solid #e9ecef;'
-        }
+        \${styles}
       \`;
       
       if (sender === 'agent' && agentName) {
         messageDiv.innerHTML = \`<div style="font-size: 12px; opacity: 0.7; margin-bottom: 4px;">\${agentName}</div>\${text}\`;
       } else {
         messageDiv.textContent = text;
+      }
+      
+      // Add message ID for tracking
+      if (arguments[3]) {
+        messageDiv.setAttribute('data-msg-id', arguments[3]);
       }
       
       messages.appendChild(messageDiv);
@@ -224,18 +328,22 @@ export default function WidgetIntegration() {
     // Send message
     function sendMessage() {
       const text = input.value.trim();
-      if (!text || !websocket) return;
+      if (!text) return;
       
       addMessage(text, 'user');
-      
-      websocket.send(JSON.stringify({
-        type: 'public_chat_message',
-        sessionId: sessionId,
-        message: text,
-        websiteUrl: window.location.hostname
-      }));
-      
       input.value = '';
+      
+      if (websocket && websocket.readyState === WebSocket.OPEN) {
+        websocket.send(JSON.stringify({
+          type: 'public_chat_message',
+          sessionId: sessionId,
+          message: text,
+          websiteUrl: window.location.hostname
+        }));
+      } else {
+        // Use HTTP fallback
+        sendMessageHttp(text);
+      }
     }
 
     // Event listeners
