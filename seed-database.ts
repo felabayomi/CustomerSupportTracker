@@ -1,5 +1,5 @@
 import { db } from "./server/db";
-import { users, trips, activities, chatMessages, supportRequests, notifications } from "./shared/schema";
+import { users, trips, activities, chatMessages, supportRequests, notifications, accessCodes } from "./shared/schema";
 import { eq } from "drizzle-orm";
 
 async function seedDatabase() {
@@ -200,6 +200,40 @@ async function seedDatabase() {
   ]);
 
   console.log("Created support requests");
+
+  // Create sample access codes for testing
+  await db.insert(accessCodes).values([
+    {
+      code: "31Y-818-APP-JMW",
+      userId: null, // Available for assignment
+      isActive: true,
+      createdAt: new Date().toISOString(),
+      lastUsedAt: null
+    },
+    {
+      code: "BSI-SZZ-QRT-789",
+      userId: null, // Available for assignment
+      isActive: true,
+      createdAt: new Date().toISOString(),
+      lastUsedAt: null
+    },
+    {
+      code: "DEY-QDL-MNP-456",
+      userId: null, // Available for assignment
+      isActive: true,
+      createdAt: new Date().toISOString(),
+      lastUsedAt: null
+    },
+    {
+      code: "ZQC-MBX-4KP-UUG",
+      userId: traveler.id, // Already linked to Alex Thompson
+      isActive: true,
+      createdAt: new Date().toISOString(),
+      lastUsedAt: null
+    }
+  ]);
+
+  console.log("Created access codes");
   console.log("Database seeding completed!");
 }
 

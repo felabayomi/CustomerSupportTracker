@@ -44,10 +44,8 @@ export default function AdminConsole() {
   // Create customer mutation
   const createCustomerMutation = useMutation({
     mutationFn: async (customerData: any) => {
-      return apiRequest('/api/admin/create-customer', {
-        method: 'POST',
-        body: JSON.stringify(customerData),
-      });
+      const res = await apiRequest('POST', '/api/admin/create-customer', customerData);
+      return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/travelers"] });
@@ -76,10 +74,8 @@ export default function AdminConsole() {
   // Update customer mutation
   const updateCustomerMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number, data: any }) => {
-      return apiRequest(`/api/admin/update-customer/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(data),
-      });
+      const res = await apiRequest('PUT', `/api/admin/update-customer/${id}`, data);
+      return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/travelers"] });
@@ -101,9 +97,8 @@ export default function AdminConsole() {
   // Delete customer mutation
   const deleteCustomerMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest(`/api/admin/delete-customer/${id}`, {
-        method: 'DELETE',
-      });
+      const res = await apiRequest('DELETE', `/api/admin/delete-customer/${id}`);
+      return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/travelers"] });
@@ -180,30 +175,34 @@ export default function AdminConsole() {
   };
 
   const saveCustomer = () => {
-    // Here you would call your API to save the customer
-    console.log('Saving customer:', editingCustomer);
-    setEditingCustomer(null);
-    // Add API call here
+    if (editingCustomer) {
+      updateCustomerMutation.mutate({
+        id: editingCustomer.id,
+        data: {
+          name: editingCustomer.name,
+          email: editingCustomer.email,
+          phone: editingCustomer.phone,
+          preferences: editingCustomer.preferences,
+          itineraries: editingCustomer.itineraries
+        }
+      });
+    }
   };
 
   const createCustomer = () => {
-    // Here you would call your API to create the customer
-    console.log('Creating customer:', newCustomer);
-    setNewCustomer({
-      name: '',
-      email: '',
-      phone: '',
-      accessCode: '',
-      preferences: '',
-      itineraries: ['']
+    createCustomerMutation.mutate({
+      name: newCustomer.name,
+      email: newCustomer.email,
+      phone: newCustomer.phone,
+      accessCode: newCustomer.accessCode,
+      preferences: newCustomer.preferences,
+      itineraries: newCustomer.itineraries.filter(itinerary => itinerary.trim() !== '')
     });
-    // Add API call here
   };
 
-  const deleteCustomer = (customerId) => {
+  const deleteCustomer = (customerId: number) => {
     if (confirm('Are you sure you want to delete this customer?')) {
-      // Add API call here
-      console.log('Deleting customer:', customerId);
+      deleteCustomerMutation.mutate(customerId);
     }
   };
 
@@ -905,9 +904,9 @@ export default function AdminConsole() {
                   <Button 
                     className="w-full" 
                     onClick={createCustomer}
-                    disabled={!newCustomer.name || !newCustomer.email || !newCustomer.accessCode}
+                    disabled={!newCustomer.name || !newCustomer.email || !newCustomer.accessCode || createCustomerMutation.isPending}
                   >
-                    Create Customer & Link Code
+                    {createCustomerMutation.isPending ? "Creating..." : "Create Customer & Link Code"}
                   </Button>
                 </CardContent>
               </Card>
