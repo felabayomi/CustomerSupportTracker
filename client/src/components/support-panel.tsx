@@ -13,6 +13,19 @@ export function SupportPanel() {
     queryKey: ["/api/notifications/unread"],
   });
 
+  const { data: user } = useQuery({
+    queryKey: ["/api/user"],
+  });
+
+  const { data: activeTrip } = useQuery({
+    queryKey: ["/api/trip/active"],
+  });
+
+  const { data: todayActivities } = useQuery({
+    queryKey: ["/api/activities/today", activeTrip?.id],
+    enabled: !!activeTrip?.id,
+  });
+
   const handleEmergencyCall = async () => {
     const phoneOptions = [
       { number: "+1 240 664 2270", label: "City Discoverer Support", description: "24/7 Travel Support" },
@@ -84,17 +97,179 @@ export function SupportPanel() {
 
   const handleQuickRequest = async (type: string, title: string) => {
     try {
+      let detailedDescription = "";
+      let priority = "normal";
+      
+      // Parse user preferences
+      const userPreferences = user?.preferences ? JSON.parse(user.preferences) : [];
+      const currentTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      const currentDate = new Date().toLocaleDateString();
+      
+      // Generate context-rich descriptions based on request type
+      switch (type) {
+        case "transportation":
+          detailedDescription = `🚗 TRANSPORTATION REQUEST - ${currentTime}
+═══════════════════════════════════════════
+
+👤 TRAVELER PROFILE:
+• Name: ${user?.name || "Unknown"}
+• Username: ${user?.username || "Unknown"}
+• Email: ${user?.email || "Unknown"}
+• Phone: ${user?.phone || "Not provided"}
+
+🗺️ CURRENT TRIP CONTEXT:
+• Trip: ${activeTrip?.title || "Active trip"}
+• Destination: ${activeTrip?.destination || "Unknown location"}
+• Trip Dates: ${activeTrip?.startDate} to ${activeTrip?.endDate}
+• Trip Status: ${activeTrip?.status}
+• Trip ID: #${activeTrip?.id}
+
+⚡ REQUEST DETAILS:
+• Request Type: Transportation assistance needed
+• Time of Request: ${currentDate} at ${currentTime}
+• Priority Level: Standard
+• Context: Traveler requires transportation help
+
+🎯 TODAY'S ACTIVITIES:
+${todayActivities?.length ? todayActivities.map(activity => 
+  `• ${activity.startTime}: ${activity.title} at ${activity.location || 'TBD'}`
+).join('\n') : '• No scheduled activities found'}
+
+👥 PREFERENCES & NOTES:
+• Travel Preferences: ${userPreferences.length ? userPreferences.join(', ') : 'None specified'}
+• Special Requirements: Check traveler profile
+• Budget Considerations: To be discussed with traveler
+
+🔧 AGENT ACTION REQUIRED:
+• Contact traveler to understand specific transportation needs
+• Check available transportation options in ${activeTrip?.destination}
+• Coordinate pickup times with today's schedule
+• Provide cost estimates and booking confirmation`;
+          break;
+          
+        case "dining":
+          detailedDescription = `🍽️ RESTAURANT RECOMMENDATIONS - ${currentTime}
+═══════════════════════════════════════════
+
+👤 TRAVELER PROFILE:
+• Name: ${user?.name || "Unknown"}
+• Username: ${user?.username || "Unknown"}
+• Email: ${user?.email || "Unknown"}
+• Phone: ${user?.phone || "Not provided"}
+
+🗺️ CURRENT TRIP CONTEXT:
+• Trip: ${activeTrip?.title || "Active trip"}
+• Destination: ${activeTrip?.destination || "Unknown location"}
+• Trip Dates: ${activeTrip?.startDate} to ${activeTrip?.endDate}
+• Trip Status: ${activeTrip?.status}
+• Trip ID: #${activeTrip?.id}
+
+⚡ REQUEST DETAILS:
+• Request Type: Dining recommendations needed
+• Time of Request: ${currentDate} at ${currentTime}
+• Priority Level: Standard
+• Context: Traveler seeking restaurant suggestions
+
+🎯 TODAY'S ACTIVITIES:
+${todayActivities?.length ? todayActivities.map(activity => 
+  `• ${activity.startTime}: ${activity.title} at ${activity.location || 'TBD'}`
+).join('\n') : '• No scheduled activities found'}
+
+👥 PREFERENCES & NOTES:
+• Travel Preferences: ${userPreferences.length ? userPreferences.join(', ') : 'None specified'}
+• Dietary Requirements: Check traveler profile for allergies/restrictions
+• Cuisine Preferences: To be determined through conversation
+• Budget Level: Discuss with traveler
+
+🔧 AGENT ACTION REQUIRED:
+• Ask about cuisine preferences and dietary restrictions
+• Determine meal type (breakfast/lunch/dinner) and timing
+• Check proximity to current location or planned activities
+• Provide 3-5 restaurant recommendations with booking assistance
+• Include price ranges and reservation requirements`;
+          break;
+          
+        case "weather":
+          detailedDescription = `☁️ WEATHER & CONDITIONS UPDATE - ${currentTime}
+═══════════════════════════════════════════
+
+👤 TRAVELER PROFILE:
+• Name: ${user?.name || "Unknown"}
+• Username: ${user?.username || "Unknown"}
+• Email: ${user?.email || "Unknown"}
+• Phone: ${user?.phone || "Not provided"}
+
+🗺️ CURRENT TRIP CONTEXT:
+• Trip: ${activeTrip?.title || "Active trip"}
+• Destination: ${activeTrip?.destination || "Unknown location"}
+• Trip Dates: ${activeTrip?.startDate} to ${activeTrip?.endDate}
+• Trip Status: ${activeTrip?.status}
+• Trip ID: #${activeTrip?.id}
+
+⚡ REQUEST DETAILS:
+• Request Type: Weather and conditions update
+• Time of Request: ${currentDate} at ${currentTime}
+• Priority Level: HIGH - Weather affects travel plans
+• Context: Traveler needs current weather information
+
+🎯 TODAY'S ACTIVITIES:
+${todayActivities?.length ? todayActivities.map(activity => 
+  `• ${activity.startTime}: ${activity.title} at ${activity.location || 'TBD'}`
+).join('\n') : '• No scheduled activities found'}
+
+👥 PREFERENCES & NOTES:
+• Travel Preferences: ${userPreferences.length ? userPreferences.join(', ') : 'None specified'}
+• Activity Types: Review itinerary for outdoor/indoor preferences
+• Weather Sensitivity: Check for special requirements
+
+🔧 AGENT ACTION REQUIRED:
+• Provide current weather conditions for ${activeTrip?.destination}
+• Give hourly forecast for today's planned activities
+• Assess impact on scheduled outdoor activities
+• Recommend alternative indoor options if weather is unfavorable
+• Suggest appropriate clothing/gear for conditions
+• Update traveler on any weather-related travel advisories`;
+          priority = "high";
+          break;
+          
+        default:
+          detailedDescription = `📋 GENERAL ASSISTANCE REQUEST - ${currentTime}
+═══════════════════════════════════════════
+
+👤 TRAVELER PROFILE:
+• Name: ${user?.name || "Unknown"}
+• Username: ${user?.username || "Unknown"}
+• Email: ${user?.email || "Unknown"}
+• Phone: ${user?.phone || "Not provided"}
+
+🗺️ CURRENT TRIP CONTEXT:
+• Trip: ${activeTrip?.title || "Active trip"}
+• Destination: ${activeTrip?.destination || "Unknown location"}
+• Trip Dates: ${activeTrip?.startDate} to ${activeTrip?.endDate}
+• Trip Status: ${activeTrip?.status}
+• Trip ID: #${activeTrip?.id}
+
+⚡ REQUEST DETAILS:
+• Request Type: ${title}
+• Time of Request: ${currentDate} at ${currentTime}
+• Context: Traveler needs assistance during their trip
+
+🔧 AGENT ACTION REQUIRED:
+• Contact traveler to understand specific needs
+• Provide personalized assistance based on trip context`;
+      }
+
       await apiRequest("POST", "/api/support-requests", {
-        tripId: 1,
+        tripId: activeTrip?.id || 1,
         type: "assistance",
         title,
-        description: `Quick request for ${type}`,
-        priority: "normal"
+        description: detailedDescription,
+        priority
       });
       
       toast({
         title: "Request Sent",
-        description: `Your ${type} request has been sent to our concierge team.`,
+        description: `Your ${type} request with full context has been sent to our concierge team.`,
       });
     } catch (error) {
       toast({
