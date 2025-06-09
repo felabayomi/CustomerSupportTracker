@@ -251,6 +251,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all support requests for admin
+  app.get("/api/admin/support-requests", async (req, res) => {
+    try {
+      // Get all support requests from all users for admin view
+      const allRequests: any[] = [];
+      const travelers = await storage.getAllTravelers();
+      
+      for (const traveler of travelers) {
+        const userRequests = await storage.getSupportRequestsByUser(traveler.id);
+        allRequests.push(...userRequests);
+      }
+      
+      // Sort by creation date (newest first)
+      allRequests.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      
+      res.json(allRequests);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get support requests" });
+    }
+  });
+
+  // Update support request (admin only)
+  app.patch("/api/admin/support-requests/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = req.body;
+      
+      const updatedRequest = await storage.updateSupportRequest(id, updates);
+      
+      if (!updatedRequest) {
+        return res.status(404).json({ message: "Support request not found" });
+      }
+      
+      res.json(updatedRequest);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update support request" });
+    }
+  });
+
+  // Send response to customer (admin only)
+  app.post("/api/admin/support-requests/:id/response", async (req, res) => {
+    try {
+      const requestId = parseInt(req.params.id);
+      const { message } = req.body;
+      
+      // Get the support request to find the user and trip
+      const supportRequest = await storage.getSupportRequest(requestId);
+      if (!supportRequest) {
+        return res.status(404).json({ message: "Support request not found" });
+      }
+      
+      // Create a chat message as the agent response
+      await storage.createChatMessage({
+        userId: supportRequest.userId,
+        tripId: supportRequest.tripId,
+        message: message,
+        sender: "agent",
+        isRead: false,
+        createdAt: new Date().toISOString()
+      });
+      
+      // Create a notification for the customer
+      await storage.createNotification({
+        userId: supportRequest.userId,
+        tripId: supportRequest.tripId,
+        title: "Response to Your Support Request",
+        message: `We've responded to your ${supportRequest.type} request.`,
+        type: "info",
+        createdAt: new Date().toISOString()
+      });
+      
+      // Update support request status if it's still open
+      if (supportRequest.status === "open") {
+        await storage.updateSupportRequest(requestId, { 
+          status: "in_progress",
+          assignedAgent: "Support Team"
+        });
+      }
+      
+      res.json({ success: true, message: "Response sent successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to send response" });
+    }
+  });
+
   // Access code verification
   app.post("/api/access/verify", async (req, res) => {
     try {
