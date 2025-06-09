@@ -425,6 +425,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   function getPublicAgentResponse(userMessage: string): string {
     const message = userMessage.toLowerCase();
     
+    // Activity-based inquiries (check these first for more specific matches)
+    if (message.includes('hotel') || message.includes('accommodation') || message.includes('stay')) {
+      return "I can help you find great accommodation! What's your budget range and preferred area? Do you need family-friendly options or business amenities?";
+    }
+    
+    if (message.includes('flight') || message.includes('airline') || message.includes('booking')) {
+      return "For flight bookings, I can help you find the best deals! What are your departure and destination cities, and when are you planning to travel?";
+    }
+    
+    if (message.includes('restaurant') || message.includes('food') || message.includes('dining')) {
+      return "Food is one of the best parts of travel! Are you looking for local specialties, fine dining, or casual eateries? Any dietary preferences I should know about?";
+    }
+    
+    if (message.includes('itinerary') || message.includes('plan') || message.includes('schedule')) {
+      return "I'd love to help you create the perfect itinerary! How many days will you be traveling, and what are your main interests - history, culture, food, or adventure?";
+    }
+    
+    if (message.includes('budget') || message.includes('cost') || message.includes('price')) {
+      return "Budget planning is crucial for great trips! What's your approximate budget, and would you like tips on saving money while still having amazing experiences?";
+    }
+    
     // Travel destination inquiries
     if (message.includes('paris') || message.includes('france')) {
       return "Paris is amazing! I'd recommend visiting the Eiffel Tower, Louvre Museum, and exploring Montmartre. How many days are you planning to stay?";
@@ -446,26 +467,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return "Rome is a city steeped in history! The Colosseum, Vatican City, and Trevi Fountain are essential visits. Are you interested in historical sites or local cuisine?";
     }
     
-    // Activity-based inquiries
-    if (message.includes('hotel') || message.includes('accommodation') || message.includes('stay')) {
-      return "I can help you find great accommodation! What's your budget range and preferred area? Do you need family-friendly options or business amenities?";
-    }
-    
-    if (message.includes('flight') || message.includes('airline') || message.includes('booking')) {
-      return "For flight bookings, I can help you find the best deals! What are your departure and destination cities, and when are you planning to travel?";
-    }
-    
-    if (message.includes('restaurant') || message.includes('food') || message.includes('dining')) {
-      return "Food is one of the best parts of travel! Are you looking for local specialties, fine dining, or casual eateries? Any dietary preferences I should know about?";
-    }
-    
-    if (message.includes('itinerary') || message.includes('plan') || message.includes('schedule')) {
-      return "I'd love to help you create the perfect itinerary! How many days will you be traveling, and what are your main interests - history, culture, food, or adventure?";
-    }
-    
-    if (message.includes('budget') || message.includes('cost') || message.includes('price')) {
-      return "Budget planning is crucial for great trips! What's your approximate budget, and would you like tips on saving money while still having amazing experiences?";
-    }
+
     
     // General travel inquiries
     if (message.includes('travel') || message.includes('trip') || message.includes('vacation') || message.includes('holiday')) {
