@@ -93,7 +93,7 @@ export function TripSelector({ selectedTripId, onTripSelect }: TripSelectorProps
               <div className="flex items-center space-x-1">
                 <Calendar className="w-4 h-4" />
                 <span>
-                  {format(new Date(selectedTrip.startDate), 'MMM d')} - {format(new Date(selectedTrip.endDate), 'MMM d, yyyy')}
+                  {format(new Date(selectedTrip.startDate + 'T12:00:00'), 'MMM d')} - {format(new Date(selectedTrip.endDate + 'T12:00:00'), 'MMM d, yyyy')}
                 </span>
               </div>
             </div>
@@ -172,7 +172,7 @@ export function TripSelector({ selectedTripId, onTripSelect }: TripSelectorProps
                       <div className="flex items-center space-x-1">
                         <Calendar className="w-3 h-3" />
                         <span>
-                          {format(new Date(trip.startDate), 'MMM d')} - {format(new Date(trip.endDate), 'MMM d')}
+                          {format(new Date(trip.startDate + 'T12:00:00'), 'MMM d')} - {format(new Date(trip.endDate + 'T12:00:00'), 'MMM d')}
                         </span>
                       </div>
                     </div>
