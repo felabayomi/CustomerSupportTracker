@@ -205,6 +205,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(sessions);
   });
 
+  // Handle public chat messages from embeddable widget
+  app.post("/api/public-chat/message", async (req, res) => {
+    try {
+      const { sessionId, message, websiteUrl } = req.body;
+      
+      // Create or get session
+      let session = publicChatSessions.get(sessionId);
+      if (!session) {
+        session = {
+          sessionId,
+          websiteUrl: websiteUrl || 'unknown',
+          isActive: true,
+          lastActivity: new Date().toISOString(),
+          messages: []
+        };
+        publicChatSessions.set(sessionId, session);
+      }
+
+      // Store user message
+      const userMessage = {
+        id: `user_${Date.now()}`,
+        message,
+        sender: 'user' as const,
+        timestamp: new Date().toISOString()
+      };
+      
+      session.messages.push(userMessage);
+      session.lastActivity = new Date().toISOString();
+      publicChatSessions.set(sessionId, session);
+
+      // Generate agent response immediately
+      const agentResponse = getPublicAgentResponse(message);
+      const agentMessage = {
+        id: `agent_${Date.now()}`,
+        message: agentResponse,
+        sender: 'agent' as const,
+        timestamp: new Date().toISOString(),
+        agentName: 'City Discoverer'
+      };
+
+      // Add agent response
+      session.messages.push(agentMessage);
+      session.lastActivity = new Date().toISOString();
+      publicChatSessions.set(sessionId, session);
+
+      // Schedule contact prompt if no further agent response in 5 minutes
+      scheduleContactPrompt(sessionId, null);
+
+      res.json({ 
+        success: true, 
+        response: agentMessage
+      });
+    } catch (error) {
+      console.error('Public chat message error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
   app.post("/api/public-chat/send", async (req, res) => {
     try {
       const { sessionId, message, agentName } = req.body;
