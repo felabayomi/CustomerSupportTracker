@@ -80,29 +80,7 @@ export function SupportPanel() {
     }
   };
 
-  const handleEmergencyChat = async () => {
-    try {
-      await apiRequest("POST", "/api/support-requests", {
-        tripId: 1,
-        type: "emergency",
-        title: "Emergency Chat Request",
-        description: "Urgent assistance needed via emergency chat",
-        priority: "emergency"
-      });
-      
-      toast({
-        title: "Emergency Chat Started",
-        description: "An emergency support agent will respond immediately.",
-        variant: "destructive",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to start emergency chat. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
+
 
   const handleQuickRequest = async (type: string, title: string) => {
     try {
@@ -158,14 +136,6 @@ export function SupportPanel() {
             >
               <Phone className="h-4 w-4 mr-2" />
               Call Emergency Line
-            </Button>
-            <Button 
-              variant="outline" 
-              className="w-full border-red-300 text-red-700 hover:bg-red-50"
-              onClick={handleEmergencyChat}
-            >
-              <MessageCircle className="h-4 w-4 mr-2" />
-              Emergency Chat
             </Button>
           </div>
         </CardContent>
