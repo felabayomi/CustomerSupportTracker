@@ -67,6 +67,11 @@ export interface IStorage {
   generateUniqueCode(): string;
   deactivateAccessCode(code: string): Promise<void>;
   getAccessCodesByUser(userId: number): Promise<AccessCode[]>;
+  updateAccessCodeUser(code: string, userId: number): Promise<void>;
+
+  // User management
+  updateUser(id: number, updates: Partial<User>): Promise<User | undefined>;
+  deleteUser(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -366,6 +371,26 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(accessCodes)
       .where(eq(accessCodes.userId, userId));
+  }
+
+  async updateAccessCodeUser(code: string, userId: number): Promise<void> {
+    await db
+      .update(accessCodes)
+      .set({ userId })
+      .where(eq(accessCodes.code, code));
+  }
+
+  async updateUser(id: number, updates: Partial<User>): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set(updates)
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
+  async deleteUser(id: number): Promise<void> {
+    await db.delete(users).where(eq(users.id, id));
   }
 }
 
@@ -845,6 +870,28 @@ export class MemStorage implements IStorage {
 
   async getAccessCodesByUser(userId: number): Promise<AccessCode[]> {
     return [];
+  }
+
+  async updateAccessCodeUser(code: string, userId: number): Promise<void> {
+    // Implementation for MemStorage - would update in-memory access codes
+  }
+
+  async updateUser(id: number, updates: Partial<User>): Promise<User | undefined> {
+    const user = this.users.get(id);
+    if (user) {
+      const updatedUser = { ...user, ...updates };
+      this.users.set(id, updatedUser);
+      return updatedUser;
+    }
+    return undefined;
+  }
+
+  async deleteUser(id: number): Promise<void> {
+    this.users.delete(id);
+    // Also remove related trips, activities, etc.
+    Array.from(this.trips.values())
+      .filter(trip => trip.userId === id)
+      .forEach(trip => this.trips.delete(trip.id));
   }
 }
 

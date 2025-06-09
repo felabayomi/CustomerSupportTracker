@@ -8,13 +8,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Settings, Users, TrendingUp, AlertTriangle, UserCheck, MapPin, BarChart3, Plus, Trash2, Edit, Save, X } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useState } from "react";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export default function AdminConsole() {
   const [location, setLocation] = useLocation();
-  const [editingCustomer, setEditingCustomer] = useState(null);
+  const [editingCustomer, setEditingCustomer] = useState<any>(null);
   const [newCustomer, setNewCustomer] = useState({
     name: '',
     email: '',
@@ -23,6 +25,9 @@ export default function AdminConsole() {
     preferences: '',
     itineraries: ['']
   });
+
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const { data: systemStats } = useQuery({
     queryKey: ["/api/admin/stats"],
@@ -34,6 +39,86 @@ export default function AdminConsole() {
 
   const { data: travelers } = useQuery({
     queryKey: ["/api/admin/travelers"],
+  });
+
+  // Create customer mutation
+  const createCustomerMutation = useMutation({
+    mutationFn: async (customerData: any) => {
+      return apiRequest('/api/admin/create-customer', {
+        method: 'POST',
+        body: JSON.stringify(customerData),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/travelers"] });
+      toast({
+        title: "Success",
+        description: "Customer created and access code linked successfully",
+      });
+      setNewCustomer({
+        name: '',
+        email: '',
+        phone: '',
+        accessCode: '',
+        preferences: '',
+        itineraries: ['']
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to create customer. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Update customer mutation
+  const updateCustomerMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number, data: any }) => {
+      return apiRequest(`/api/admin/update-customer/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/travelers"] });
+      toast({
+        title: "Success",
+        description: "Customer updated successfully",
+      });
+      setEditingCustomer(null);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update customer. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Delete customer mutation
+  const deleteCustomerMutation = useMutation({
+    mutationFn: async (id: number) => {
+      return apiRequest(`/api/admin/delete-customer/${id}`, {
+        method: 'DELETE',
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/travelers"] });
+      toast({
+        title: "Success",
+        description: "Customer deleted successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete customer. Please try again.",
+        variant: "destructive",
+      });
+    }
   });
 
   // Itinerary management functions

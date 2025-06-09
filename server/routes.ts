@@ -240,6 +240,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create customer and link access code
+  app.post("/api/admin/create-customer", async (req, res) => {
+    try {
+      const { name, email, phone, accessCode, preferences, itineraries } = req.body;
+      
+      // Create the user
+      const user = await storage.createUser({
+        username: email.split('@')[0].toLowerCase(),
+        password: "password",
+        name,
+        email,
+        phone,
+        avatar: `https://images.unsplash.com/photo-${Math.random() > 0.5 ? '1494790108755-2616b612b786' : '1500648767791-00dcc994a43e'}?w=150&h=150&fit=crop&crop=face`,
+        role: "traveler",
+        preferences: JSON.stringify(preferences?.split(',').map(p => p.trim()) || []),
+        alertsEnabled: true
+      });
+
+      // Update the access code to link to this user
+      await storage.updateAccessCodeUser(accessCode, user.id);
+
+      // Create trips for each itinerary
+      for (let i = 0; i < itineraries.length; i++) {
+        if (itineraries[i].trim()) {
+          await storage.createTrip({
+            userId: user.id,
+            title: `Trip Scenario ${i + 1}`,
+            destination: "Custom Itinerary",
+            startDate: new Date().toISOString().split('T')[0],
+            endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            status: "planned",
+            description: `Custom itinerary: ${itineraries[i]}`
+          });
+        }
+      }
+
+      res.json({ success: true, user });
+    } catch (error) {
+      console.error('Create customer error:', error);
+      res.status(500).json({ message: "Failed to create customer" });
+    }
+  });
+
+  // Update customer
+  app.put("/api/admin/update-customer/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { name, email, phone, preferences, itineraries } = req.body;
+      
+      // Update user details
+      const updatedUser = await storage.updateUser(parseInt(id), {
+        name,
+        email,
+        phone,
+        preferences: JSON.stringify(preferences?.split(',').map(p => p.trim()) || [])
+      });
+
+      res.json({ success: true, user: updatedUser });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update customer" });
+    }
+  });
+
+  // Delete customer
+  app.delete("/api/admin/delete-customer/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteUser(parseInt(id));
+      res.json({ success: true, message: "Customer deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete customer" });
+    }
+  });
+
   // Verify access code (for admin validation tool)
   app.post("/api/verify-access-code", async (req, res) => {
     try {
