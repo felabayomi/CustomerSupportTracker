@@ -391,7 +391,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/chat/read/:tripId", async (req, res) => {
     try {
       const tripId = parseInt(req.params.tripId);
-      const userId = parseInt(req.body.userId) || 3; // Default to Maya Chen (ID: 3)
+      const userId = (req.session as any)?.userId || parseInt(req.body.userId) || 3;
       await storage.markMessagesAsRead(userId, tripId);
       res.json({ success: true });
     } catch (error) {
@@ -402,7 +402,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get unread message count
   app.get("/api/chat/unread-count", async (req, res) => {
     try {
-      const userId = parseInt(req.query.userId as string) || 3; // Default to Maya Chen (ID: 3)
+      const userId = (req.session as any)?.userId || parseInt(req.query.userId as string) || 3;
       const count = await storage.getUnreadMessageCount(userId);
       res.json({ count });
     } catch (error) {
@@ -413,7 +413,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get notifications
   app.get("/api/notifications", async (req, res) => {
     try {
-      const userId = parseInt(req.query.userId as string) || 3; // Default to Maya Chen (ID: 3)
+      const userId = (req.session as any)?.userId || parseInt(req.query.userId as string) || 3;
       const notifications = await storage.getNotificationsByUser(userId);
       res.json(notifications);
     } catch (error) {

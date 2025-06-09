@@ -51,15 +51,7 @@ export function NavigationHeader({ onShowNotifications }: NavigationHeaderProps)
               )}
             </Button>
             
-            <Button
-              variant="destructive"
-              size="sm"
-              className="font-medium"
-              onClick={handleSOS}
-            >
-              <AlertTriangle className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">SOS</span>
-            </Button>
+
             
             <div className="flex items-center space-x-2">
               <Avatar className="h-8 w-8">
