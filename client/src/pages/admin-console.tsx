@@ -112,6 +112,7 @@ export default function AdminConsole() {
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="monitoring">Live Monitoring</TabsTrigger>
             <TabsTrigger value="codes">Access Codes</TabsTrigger>
+            <TabsTrigger value="customers">Customer Management</TabsTrigger>
             <TabsTrigger value="agents">Agent Management</TabsTrigger>
             <TabsTrigger value="travelers">Traveler Management</TabsTrigger>
             <TabsTrigger value="communications">Communications</TabsTrigger>
@@ -596,6 +597,153 @@ export default function AdminConsole() {
                               {usage.status}
                             </Badge>
                             <div className="text-xs text-slate-500 mt-1">{usage.time}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Customer Management Tab */}
+          <TabsContent value="customers" className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold text-slate-900">Customer Management</h3>
+              <Button>Add New Customer</Button>
+            </div>
+            
+            <div className="grid lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Create Customer & Link Access Code</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium">Customer Name</label>
+                      <input 
+                        type="text" 
+                        placeholder="e.g., Kattey Hensen"
+                        className="w-full mt-1 p-2 border rounded"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">Email</label>
+                      <input 
+                        type="email" 
+                        placeholder="customer@email.com"
+                        className="w-full mt-1 p-2 border rounded"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium">Phone</label>
+                      <input 
+                        type="tel" 
+                        placeholder="+1-555-0123"
+                        className="w-full mt-1 p-2 border rounded"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">Access Code</label>
+                      <select className="w-full mt-1 p-2 border rounded">
+                        <option>Select available code...</option>
+                        <option>31Y-818-APP-JMW</option>
+                        <option>BSI-SZZ-QRT-789</option>
+                        <option>DEY-QDL-MNP-456</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium">Itinerary Links</label>
+                    <div className="space-y-2 mt-1">
+                      <input 
+                        type="url" 
+                        placeholder="Scenario 1: https://view.citydiscoverer.ai/itinerary/..."
+                        className="w-full p-2 border rounded text-sm"
+                      />
+                      <input 
+                        type="url" 
+                        placeholder="Scenario 2: https://view.citydiscoverer.ai/itinerary/..."
+                        className="w-full p-2 border rounded text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium">Travel Preferences</label>
+                    <textarea 
+                      className="w-full mt-1 p-2 border rounded h-20" 
+                      placeholder="e.g., Adventure travel, cultural experiences, road trips"
+                    ></textarea>
+                  </div>
+
+                  <Button className="w-full">Create Customer & Link Code</Button>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Existing Customers</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ScrollArea className="h-96">
+                    <div className="space-y-3">
+                      {[
+                        {
+                          name: "Alex Thompson",
+                          email: "alex.thompson@expedition-america.com",
+                          code: "ZQC-MBX-4KP-UUG",
+                          status: "active",
+                          trip: "Pacific Coast Adventure",
+                          avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=40&h=40&fit=crop&crop=face"
+                        },
+                        {
+                          name: "Kattey Hensen",
+                          email: "kattey.hensen@email.com",
+                          code: "31Y-818-APP-JMW",
+                          status: "active",
+                          trip: "Full Road Trip Drive",
+                          avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=40&h=40&fit=crop&crop=face"
+                        }
+                      ].map((customer, index) => (
+                        <div key={index} className="border rounded p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center space-x-3">
+                              <Avatar className="h-8 w-8">
+                                <AvatarImage src={customer.avatar} alt={customer.name} />
+                                <AvatarFallback>{customer.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-medium text-sm">{customer.name}</p>
+                                <p className="text-xs text-slate-500">{customer.email}</p>
+                              </div>
+                            </div>
+                            <Badge variant={customer.status === 'active' ? 'default' : 'secondary'}>
+                              {customer.status}
+                            </Badge>
+                          </div>
+                          
+                          <div className="text-xs space-y-1">
+                            <div className="flex justify-between">
+                              <span className="text-slate-500">Access Code:</span>
+                              <span className="font-mono">{customer.code}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-slate-500">Current Trip:</span>
+                              <span>{customer.trip}</span>
+                            </div>
+                          </div>
+                          
+                          <div className="flex space-x-2 mt-3">
+                            <Button size="sm" variant="outline" className="text-xs">Edit</Button>
+                            <Button size="sm" variant="outline" className="text-xs">View Details</Button>
+                            <Button size="sm" variant="destructive" className="text-xs">Deactivate</Button>
                           </div>
                         </div>
                       ))}
