@@ -238,6 +238,32 @@ export default function AdminConsole() {
             </div>
             
             <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setLocation('/admin/felixdgreat/support-requests')}
+                  className="text-xs"
+                >
+                  Support Requests
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setLocation('/admin/felixdgreat/trip-management')}
+                  className="text-xs"
+                >
+                  Trip Management
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setLocation('/public-chat-demo')}
+                  className="text-xs"
+                >
+                  Public Chat Demo
+                </Button>
+              </div>
               <Badge variant="secondary" className="bg-purple-100 text-purple-800">
                 Administrator
               </Badge>
