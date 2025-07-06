@@ -215,23 +215,23 @@ export default function SecureAdmin() {
                 <Shield className="text-red-600 text-lg" />
               </div>
               <div>
-                <h1 className="text-xl font-semibold text-white">Secure Admin Portal</h1>
-                <p className="text-xs text-red-100">Code Management</p>
+                <h1 className="text-xl font-semibold text-white !text-white">Secure Admin Portal</h1>
+                <p className="text-xs text-white/80 !text-white/80">Code Management</p>
               </div>
             </div>
             
             <div className="flex items-center space-x-4">
-              <Badge className="bg-green-100 text-green-800 border-green-200">
+              <Badge className="bg-green-100 text-green-800 border-green-200 font-medium">
                 Authenticated
               </Badge>
               <Button 
                 variant="outline" 
                 size="sm"
                 onClick={() => setLocation("/admin/felixdgreat/console")}
-                className="border-white/20 text-white hover:bg-white/10"
+                className="border-white/30 text-white hover:bg-white/10 hover:text-white !text-white font-medium"
               >
-                <BarChart3 className="h-4 w-4 mr-2" />
-                Admin Console
+                <BarChart3 className="h-4 w-4 mr-2 text-white" />
+                <span className="text-white">Admin Console</span>
               </Button>
             </div>
           </div>
