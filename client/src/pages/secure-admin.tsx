@@ -225,13 +225,13 @@ export default function SecureAdmin() {
                 Authenticated
               </Badge>
               <Button 
-                variant="outline" 
+                variant="default" 
                 size="sm"
                 onClick={() => setLocation("/admin/felixdgreat/console")}
-                className="border-white/30 text-white hover:bg-white/10 hover:text-white !text-white font-medium"
+                className="bg-white text-red-600 hover:bg-gray-50 hover:text-red-700 border-white font-medium"
               >
-                <BarChart3 className="h-4 w-4 mr-2 text-white" />
-                <span className="text-white">Admin Console</span>
+                <BarChart3 className="h-4 w-4 mr-2" />
+                Admin Console
               </Button>
             </div>
           </div>
