@@ -7,7 +7,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { MessageCircle, Send, Clock, Globe, User } from "lucide-react";
+import { MessageCircle, Send, Clock, Globe, User, ArrowLeft } from "lucide-react";
+import { useLocation } from "wouter";
 // Removed WebSocket dependency for HTTP-only reliability
 
 interface PublicChatSession {
@@ -33,6 +34,7 @@ export default function PublicChatInbox() {
   const [sessions, setSessions] = useState<PublicChatSession[]>([]);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
 
   // Use HTTP polling instead of WebSocket for reliability
   const isConnected = true; // Always consider connected for HTTP mode
@@ -81,13 +83,25 @@ export default function PublicChatInbox() {
       <header className="bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                <MessageCircle className="text-white text-lg" />
-              </div>
-              <div>
-                <h1 className="text-xl font-semibold text-slate-900">Public Chat Inbox</h1>
-                <p className="text-xs text-slate-500">Manage website visitor conversations</p>
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setLocation("/admin/felixdgreat/console")}
+                className="flex items-center space-x-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span>Back to Console</span>
+              </Button>
+              <div className="h-6 w-px bg-slate-300"></div>
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                  <MessageCircle className="text-white text-lg" />
+                </div>
+                <div>
+                  <h1 className="text-xl font-semibold text-slate-900">Public Chat Inbox</h1>
+                  <p className="text-xs text-slate-500">Manage website visitor conversations</p>
+                </div>
               </div>
             </div>
             

@@ -164,11 +164,11 @@ export default function AdminSupportRequests() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setLocation("/admin/felixdgreat")}
+                onClick={() => setLocation("/admin/felixdgreat/console")}
                 className="flex items-center space-x-2"
               >
                 <ArrowLeft className="h-4 w-4" />
-                <span>Back to Admin</span>
+                <span>Back to Console</span>
               </Button>
               <h1 className="text-xl font-semibold text-slate-900">Support Request Management</h1>
             </div>

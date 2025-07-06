@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Copy, Check, ExternalLink, MessageCircle, Globe, Code } from "lucide-react";
+import { Copy, Check, ExternalLink, MessageCircle, Globe, Code, ArrowLeft } from "lucide-react";
+import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 
 export default function WidgetIntegration() {
@@ -14,6 +15,7 @@ export default function WidgetIntegration() {
   const [companyName, setCompanyName] = useState("City Discoverer");
   const [position, setPosition] = useState("bottom-right");
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
 
   // Get the current domain
   const currentDomain = window.location.origin;
@@ -336,9 +338,23 @@ export default function WidgetIntegration() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Widget Integration
-          </h1>
+          <div className="flex items-center space-x-4 mb-6">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setLocation("/admin/felixdgreat/console")}
+              className="flex items-center space-x-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span>Back to Console</span>
+            </Button>
+            <div className="h-6 w-px bg-gray-300"></div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Widget Integration
+              </h1>
+            </div>
+          </div>
           <p className="text-gray-600">
             Add the City Discoverer chat widget to any website. All messages will appear in your Public Chat Inbox.
           </p>
