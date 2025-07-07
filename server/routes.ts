@@ -164,44 +164,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // Create a test session for demonstration
-  const testSession = {
-    sessionId: 'test_session_123',
-    websiteUrl: 'citydiscoverer.ai',
-    isActive: true,
-    lastActivity: new Date().toISOString(),
-    messages: [
-      {
-        id: 'msg_1',
-        message: 'Hi! I\'m interested in your city tours in San Francisco.',
-        sender: 'user' as const,
-        timestamp: new Date(Date.now() - 180000).toISOString()
-      },
-      {
-        id: 'msg_2',
-        message: 'Great! I can help you with that. What dates are you looking at?',
-        sender: 'agent' as const,
-        timestamp: new Date(Date.now() - 120000).toISOString(),
-        agentName: 'AI Assistant'
-      },
-      {
-        id: 'msg_3',
-        message: 'I was thinking about next weekend. Do you have any availability?',
-        sender: 'user' as const,
-        timestamp: new Date(Date.now() - 60000).toISOString()
+  // Clear any existing test sessions
+  publicChatSessions.clear();
+  
+  // Remove the persistent test session to prevent static timestamp issues
+  // Test sessions should be temporary and created only when needed
+
+
+
+  // Clean up old sessions (older than 24 hours)
+  function cleanupOldSessions() {
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    for (const [sessionId, session] of publicChatSessions.entries()) {
+      const lastActivity = new Date(session.lastActivity);
+      if (lastActivity < twentyFourHoursAgo) {
+        publicChatSessions.delete(sessionId);
+        publicConnections.delete(sessionId);
+        console.log(`Cleaned up old session: ${sessionId}`);
       }
-    ]
-  };
-  publicChatSessions.set(testSession.sessionId, testSession);
+    }
+  }
 
-
+  // Clean up old sessions every hour
+  setInterval(cleanupOldSessions, 60 * 60 * 1000);
 
   // Public chat API routes
   app.get("/api/public-chat/sessions", (req, res) => {
-    const sessions = Array.from(publicChatSessions.values()).map(session => ({
-      ...session,
-      unreadCount: session.messages.filter(msg => msg.sender === 'user').length
-    }));
+    // Clean up sessions on each request as well
+    cleanupOldSessions();
+    
+    const sessions = Array.from(publicChatSessions.values())
+      .filter(session => session.isActive) // Only return active sessions
+      .map(session => ({
+        ...session,
+        unreadCount: session.messages.filter(msg => msg.sender === 'user').length
+      }));
     res.json(sessions);
   });
 
