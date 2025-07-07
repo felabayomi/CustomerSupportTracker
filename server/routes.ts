@@ -782,6 +782,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create agent
+  app.post("/api/admin/create-agent", async (req, res) => {
+    try {
+      const { name, email, phone, username, password } = req.body;
+      
+      // Create the agent user
+      const agent = await storage.createUser({
+        username: username || email.split('@')[0].toLowerCase(),
+        password: password || "password",
+        name,
+        email,
+        phone,
+        avatar: `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face`,
+        role: "agent",
+        preferences: null,
+        alertsEnabled: true
+      });
+
+      res.json({ success: true, agent });
+    } catch (error) {
+      console.error('Create agent error:', error);
+      res.status(500).json({ message: "Failed to create agent" });
+    }
+  });
+
   // Create customer and link access code
   app.post("/api/admin/create-customer", async (req, res) => {
     try {

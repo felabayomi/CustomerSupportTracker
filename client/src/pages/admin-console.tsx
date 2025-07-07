@@ -90,6 +90,29 @@ export default function AdminConsole() {
     }
   });
 
+  // Create agent mutation
+  const createAgentMutation = useMutation({
+    mutationFn: async (agentData: any) => {
+      const res = await apiRequest('POST', '/api/admin/create-agent', agentData);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/agents"] });
+      toast({
+        title: "Success",
+        description: "Agent created successfully",
+      });
+      setEditingCustomer(null);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to create agent. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
   // Update customer mutation
   const updateCustomerMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number, data: any }) => {
@@ -527,43 +550,18 @@ export default function AdminConsole() {
           <TabsContent value="agents" className="space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold text-slate-900">Agent Management</h3>
-              <Button>Add New Agent</Button>
+              <Button onClick={() => setEditingCustomer({ type: 'agent' })}>Add New Agent</Button>
             </div>
             
             <Card>
               <CardContent className="p-6">
                 <div className="space-y-4">
-                  {[
-                    {
-                      name: "Sarah Anderson",
-                      email: "sarah@citydiscoverer.com",
-                      status: "online",
-                      assigned: 12,
-                      rating: 4.9,
-                      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face"
-                    },
-                    {
-                      name: "Michael Brown",
-                      email: "michael@citydiscoverer.com", 
-                      status: "online",
-                      assigned: 8,
-                      rating: 4.7,
-                      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face"
-                    },
-                    {
-                      name: "Lisa Chen",
-                      email: "lisa@citydiscoverer.com",
-                      status: "offline",
-                      assigned: 15,
-                      rating: 4.8,
-                      avatar: "https://images.unsplash.com/photo-1494790108755-2616b9f90882?w=150&h=150&fit=crop&crop=face"
-                    }
-                  ].map((agent, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
+                  {agents?.map((agent: any) => (
+                    <div key={agent.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="flex items-center space-x-4">
                         <Avatar className="h-12 w-12">
                           <AvatarImage src={agent.avatar} alt={agent.name} />
-                          <AvatarFallback>{agent.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                          <AvatarFallback>{agent.name.split(' ').map((n: string) => n[0]).join('')}</AvatarFallback>
                         </Avatar>
                         <div>
                           <h4 className="font-semibold text-slate-900">{agent.name}</h4>
@@ -574,25 +572,120 @@ export default function AdminConsole() {
                       <div className="flex items-center space-x-6">
                         <div className="text-center">
                           <p className="text-sm text-slate-600">Status</p>
-                          <Badge variant={agent.status === 'online' ? 'default' : 'secondary'}>
-                            {agent.status}
+                          <Badge variant="default" className="bg-green-100 text-green-800">
+                            online
                           </Badge>
                         </div>
                         <div className="text-center">
-                          <p className="text-sm text-slate-600">Assigned</p>
-                          <p className="font-semibold">{agent.assigned}</p>
+                          <p className="text-sm text-slate-600">Role</p>
+                          <p className="font-semibold">{agent.role}</p>
                         </div>
                         <div className="text-center">
                           <p className="text-sm text-slate-600">Rating</p>
-                          <p className="font-semibold">{agent.rating}</p>
+                          <p className="font-semibold">4.9</p>
                         </div>
-                        <Button variant="outline" size="sm">Manage</Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => deleteCustomerMutation.mutate(agent.id)}
+                        >
+                          Delete
+                        </Button>
                       </div>
                     </div>
                   ))}
+                  
+                  {(!agents || agents.length === 0) && (
+                    <div className="text-center py-8 text-slate-500">
+                      <p>No agents found. Add a new agent to get started.</p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
+
+            {/* Agent Creation Modal */}
+            {editingCustomer?.type === 'agent' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Create New Agent</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium">Agent Name</label>
+                      <Input 
+                        type="text" 
+                        placeholder="e.g., John Smith"
+                        value={editingCustomer.name || ''}
+                        onChange={(e) => setEditingCustomer(prev => ({ ...prev, name: e.target.value }))}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">Email</label>
+                      <Input 
+                        type="email" 
+                        placeholder="agent@company.com"
+                        value={editingCustomer.email || ''}
+                        onChange={(e) => setEditingCustomer(prev => ({ ...prev, email: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium">Phone</label>
+                      <Input 
+                        type="tel" 
+                        placeholder="+1-555-0123"
+                        value={editingCustomer.phone || ''}
+                        onChange={(e) => setEditingCustomer(prev => ({ ...prev, phone: e.target.value }))}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">Username</label>
+                      <Input 
+                        type="text" 
+                        placeholder="agent_username"
+                        value={editingCustomer.username || ''}
+                        onChange={(e) => setEditingCustomer(prev => ({ ...prev, username: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium">Password</label>
+                    <Input 
+                      type="password" 
+                      placeholder="Set initial password"
+                      value={editingCustomer.password || ''}
+                      onChange={(e) => setEditingCustomer(prev => ({ ...prev, password: e.target.value }))}
+                    />
+                  </div>
+
+                  <div className="flex space-x-2 pt-4">
+                    <Button 
+                      onClick={() => createAgentMutation.mutate({
+                        name: editingCustomer.name,
+                        email: editingCustomer.email,
+                        phone: editingCustomer.phone,
+                        username: editingCustomer.username,
+                        password: editingCustomer.password
+                      })}
+                      disabled={createAgentMutation.isPending}
+                    >
+                      {createAgentMutation.isPending ? 'Creating...' : 'Create Agent'}
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setEditingCustomer(null)}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
           
           <TabsContent value="travelers" className="space-y-4">
