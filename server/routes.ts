@@ -807,6 +807,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update agent
+  app.put("/api/admin/update-agent/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { name, email, phone, username, password, avatar } = req.body;
+      
+      const updateData: any = { name, email, phone, username };
+      if (password) updateData.password = password;
+      if (avatar) updateData.avatar = avatar;
+      
+      const updatedAgent = await storage.updateUser(parseInt(id), updateData);
+      res.json({ success: true, agent: updatedAgent });
+    } catch (error) {
+      console.error('Update agent error:', error);
+      res.status(500).json({ message: "Failed to update agent" });
+    }
+  });
+
   // Create customer and link access code
   app.post("/api/admin/create-customer", async (req, res) => {
     try {

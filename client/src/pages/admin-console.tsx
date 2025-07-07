@@ -113,6 +113,29 @@ export default function AdminConsole() {
     }
   });
 
+  // Update agent mutation
+  const updateAgentMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number, data: any }) => {
+      const res = await apiRequest('PUT', `/api/admin/update-agent/${id}`, data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/agents"] });
+      toast({
+        title: "Success",
+        description: "Agent updated successfully",
+      });
+      setEditingCustomer(null);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update agent. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
   // Update customer mutation
   const updateCustomerMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number, data: any }) => {
@@ -587,6 +610,13 @@ export default function AdminConsole() {
                         <Button 
                           variant="outline" 
                           size="sm"
+                          onClick={() => setEditingCustomer({ type: 'agent', mode: 'edit', ...agent })}
+                        >
+                          Edit
+                        </Button>
+                        <Button 
+                          variant="destructive" 
+                          size="sm"
                           onClick={() => deleteCustomerMutation.mutate(agent.id)}
                         >
                           Delete
@@ -604,11 +634,13 @@ export default function AdminConsole() {
               </CardContent>
             </Card>
 
-            {/* Agent Creation Modal */}
+            {/* Agent Creation/Edit Modal */}
             {editingCustomer?.type === 'agent' && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Create New Agent</CardTitle>
+                  <CardTitle>
+                    {editingCustomer.mode === 'edit' ? 'Edit Agent' : 'Create New Agent'}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
@@ -654,27 +686,96 @@ export default function AdminConsole() {
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium">Password</label>
+                    <label className="text-sm font-medium">
+                      {editingCustomer.mode === 'edit' ? 'New Password (leave blank to keep current)' : 'Password'}
+                    </label>
                     <Input 
                       type="password" 
-                      placeholder="Set initial password"
+                      placeholder={editingCustomer.mode === 'edit' ? 'Leave blank to keep current password' : 'Set initial password'}
                       value={editingCustomer.password || ''}
                       onChange={(e) => setEditingCustomer(prev => ({ ...prev, password: e.target.value }))}
                     />
                   </div>
 
+                  <div>
+                    <label className="text-sm font-medium">Avatar URL</label>
+                    <Input 
+                      type="url" 
+                      placeholder="https://example.com/avatar.jpg"
+                      value={editingCustomer.avatar || ''}
+                      onChange={(e) => setEditingCustomer(prev => ({ ...prev, avatar: e.target.value }))}
+                    />
+                    <p className="text-xs text-slate-500 mt-1">
+                      Or choose from presets:
+                    </p>
+                    <div className="flex gap-2 mt-2">
+                      {[
+                        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
+                        'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+                        'https://images.unsplash.com/photo-1494790108755-2616b9f90882?w=150&h=150&fit=crop&crop=face',
+                        'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face'
+                      ].map((url, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          className="w-12 h-12 rounded-full overflow-hidden border-2 border-slate-200 hover:border-blue-500"
+                          onClick={() => setEditingCustomer(prev => ({ ...prev, avatar: url }))}
+                        >
+                          <img src={url} alt={`Avatar ${index + 1}`} className="w-full h-full object-cover" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {editingCustomer.avatar && (
+                    <div>
+                      <label className="text-sm font-medium">Preview</label>
+                      <div className="flex items-center space-x-3 p-3 bg-slate-50 rounded-lg">
+                        <Avatar className="h-12 w-12">
+                          <AvatarImage src={editingCustomer.avatar} alt="Preview" />
+                          <AvatarFallback>
+                            {editingCustomer.name?.split(' ').map((n: string) => n[0]).join('') || 'AG'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium">{editingCustomer.name || 'Agent Name'}</p>
+                          <p className="text-sm text-slate-600">{editingCustomer.email || 'agent@company.com'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex space-x-2 pt-4">
                     <Button 
-                      onClick={() => createAgentMutation.mutate({
-                        name: editingCustomer.name,
-                        email: editingCustomer.email,
-                        phone: editingCustomer.phone,
-                        username: editingCustomer.username,
-                        password: editingCustomer.password
-                      })}
-                      disabled={createAgentMutation.isPending}
+                      onClick={() => {
+                        if (editingCustomer.mode === 'edit') {
+                          updateAgentMutation.mutate({
+                            id: editingCustomer.id,
+                            data: {
+                              name: editingCustomer.name,
+                              email: editingCustomer.email,
+                              phone: editingCustomer.phone,
+                              username: editingCustomer.username,
+                              password: editingCustomer.password || undefined,
+                              avatar: editingCustomer.avatar
+                            }
+                          });
+                        } else {
+                          createAgentMutation.mutate({
+                            name: editingCustomer.name,
+                            email: editingCustomer.email,
+                            phone: editingCustomer.phone,
+                            username: editingCustomer.username,
+                            password: editingCustomer.password,
+                            avatar: editingCustomer.avatar
+                          });
+                        }
+                      }}
+                      disabled={createAgentMutation.isPending || updateAgentMutation.isPending}
                     >
-                      {createAgentMutation.isPending ? 'Creating...' : 'Create Agent'}
+                      {(createAgentMutation.isPending || updateAgentMutation.isPending) 
+                        ? (editingCustomer.mode === 'edit' ? 'Updating...' : 'Creating...') 
+                        : (editingCustomer.mode === 'edit' ? 'Update Agent' : 'Create Agent')}
                     </Button>
                     <Button 
                       variant="outline" 
