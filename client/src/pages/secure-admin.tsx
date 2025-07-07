@@ -228,7 +228,7 @@ export default function SecureAdmin() {
                 variant="default" 
                 size="sm"
                 onClick={() => setLocation("/admin/felixdgreat/console")}
-                className="bg-white text-red-600 hover:bg-gray-50 hover:text-red-700 border-white font-medium"
+                className="bg-green-100 text-green-800 hover:bg-green-200 hover:text-green-900 border-green-200 font-medium"
               >
                 <BarChart3 className="h-4 w-4 mr-2" />
                 Admin Console
