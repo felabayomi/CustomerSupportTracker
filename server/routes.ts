@@ -808,20 +808,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update agent
-  app.put("/api/admin/update-agent/:id", async (req, res) => {
+  app.put("/api/admin/update-agent/:id", async (req, res, next) => {
     try {
+      // Explicitly handle JSON response 
+      res.contentType('application/json');
+      
       const { id } = req.params;
       const { name, email, phone, username, password, avatar } = req.body;
       
+      console.log('Update agent request:', { id, name, email, phone, username, avatar });
+      
       const updateData: any = { name, email, phone, username };
-      if (password) updateData.password = password;
+      if (password && password.trim()) updateData.password = password;
       if (avatar) updateData.avatar = avatar;
       
       const updatedAgent = await storage.updateUser(parseInt(id), updateData);
-      res.json({ success: true, agent: updatedAgent });
+      console.log('Updated agent result:', updatedAgent);
+      
+      if (!updatedAgent) {
+        res.status(404);
+        res.end(JSON.stringify({ message: "Agent not found" }));
+        return;
+      }
+      
+      res.status(200);
+      res.end(JSON.stringify({ success: true, agent: updatedAgent }));
     } catch (error) {
       console.error('Update agent error:', error);
-      res.status(500).json({ message: "Failed to update agent" });
+      res.status(500);
+      res.end(JSON.stringify({ message: "Failed to update agent", error: error.message }));
     }
   });
 
