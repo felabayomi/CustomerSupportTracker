@@ -43,7 +43,7 @@ export default function AdminConsole() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const { data: systemStats } = useQuery({
+  const { data: systemStats, isLoading: statsLoading } = useQuery({
     queryKey: ["/api/admin/stats"],
   });
 
@@ -362,7 +362,9 @@ export default function AdminConsole() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-slate-600">Total Travelers</p>
-                  <p className="text-2xl font-semibold text-slate-900">347</p>
+                  <p className="text-2xl font-semibold text-slate-900">
+                    {statsLoading ? "..." : (systemStats?.totalTravelers || 0)}
+                  </p>
                 </div>
                 <Users className="h-8 w-8 text-primary" />
               </div>
@@ -374,7 +376,9 @@ export default function AdminConsole() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-slate-600">Active Agents</p>
-                  <p className="text-2xl font-semibold text-slate-900">28</p>
+                  <p className="text-2xl font-semibold text-slate-900">
+                    {statsLoading ? "..." : (systemStats?.activeAgents || 0)}
+                  </p>
                 </div>
                 <UserCheck className="h-8 w-8 text-secondary" />
               </div>
@@ -386,7 +390,9 @@ export default function AdminConsole() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-slate-600">Active Trips</p>
-                  <p className="text-2xl font-semibold text-slate-900">156</p>
+                  <p className="text-2xl font-semibold text-slate-900">
+                    {statsLoading ? "..." : (systemStats?.activeTrips || 0)}
+                  </p>
                 </div>
                 <MapPin className="h-8 w-8 text-accent" />
               </div>
@@ -398,7 +404,9 @@ export default function AdminConsole() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-slate-600">Avg. Satisfaction</p>
-                  <p className="text-2xl font-semibold text-slate-900">4.8</p>
+                  <p className="text-2xl font-semibold text-slate-900">
+                    {statsLoading ? "..." : (systemStats?.avgSatisfaction || 0)}
+                  </p>
                 </div>
                 <TrendingUp className="h-8 w-8 text-success" />
               </div>
