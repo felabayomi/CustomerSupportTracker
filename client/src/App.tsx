@@ -23,7 +23,9 @@ function Router() {
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/support-requests" component={SupportRequests} />
       <Route path="/agent-panel" component={AgentDashboard} />
+      <Route path="/admin" component={SecureAdmin} />
       <Route path="/admin/felixdgreat" component={SecureAdmin} />
+      <Route path="/admin/security" component={SecureAdmin} />
       <Route path="/admin/felixdgreat/console" component={AdminConsole} />
       <Route path="/admin/felixdgreat/support-requests" component={AdminSupportRequests} />
       <Route path="/admin/felixdgreat/trip-management" component={AdminTripManagement} />
