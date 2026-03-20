@@ -93,6 +93,23 @@ export default function AccessPortal() {
           </p>
         </div>
 
+        {/* Appointment Calendar */}
+        <div className="mb-6">
+          <div className="text-center mb-3">
+            <p className="text-sm text-blue-200 font-medium">Schedule an Appointment</p>
+            <p className="text-xs text-slate-400">Book a session with your travel concierge</p>
+          </div>
+          <div className="rounded-2xl overflow-hidden border border-white/20 shadow-2xl bg-white/5 backdrop-blur-xl">
+            <iframe
+              src="https://appointment.expeditionamerica.us/"
+              className="w-full"
+              style={{ height: "600px", border: "none" }}
+              title="Book an Appointment"
+              allow="camera; microphone; payment"
+            />
+          </div>
+        </div>
+
         {/* Access Card */}
         <Card className="bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl">
           <CardHeader className="text-center pb-4">
@@ -164,23 +181,6 @@ export default function AccessPortal() {
             </div>
           </CardContent>
         </Card>
-
-        {/* Appointment Calendar */}
-        <div className="mt-6">
-          <div className="text-center mb-3">
-            <p className="text-sm text-blue-200 font-medium">Schedule an Appointment</p>
-            <p className="text-xs text-slate-400">Book a session with your travel concierge</p>
-          </div>
-          <div className="rounded-2xl overflow-hidden border border-white/20 shadow-2xl bg-white/5 backdrop-blur-xl">
-            <iframe
-              src="https://appointment.expeditionamerica.us/"
-              className="w-full"
-              style={{ height: "600px", border: "none" }}
-              title="Book an Appointment"
-              allow="camera; microphone; payment"
-            />
-          </div>
-        </div>
 
         {/* Footer */}
         <div className="text-center mt-6 text-xs text-slate-500">
