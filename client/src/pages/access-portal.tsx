@@ -65,11 +65,11 @@ export default function AccessPortal() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-start justify-center p-4 py-10">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1)_0%,transparent_50%)] pointer-events-none"></div>
       
-      <div className="w-full max-w-md relative z-10">
+      <div className="w-full max-w-2xl relative z-10">
         {/* Logo Section */}
         <div className="text-center mb-8">
           <div className="relative mx-auto w-32 h-32 mb-6">
@@ -164,6 +164,23 @@ export default function AccessPortal() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Appointment Calendar */}
+        <div className="mt-6">
+          <div className="text-center mb-3">
+            <p className="text-sm text-blue-200 font-medium">Schedule an Appointment</p>
+            <p className="text-xs text-slate-400">Book a session with your travel concierge</p>
+          </div>
+          <div className="rounded-2xl overflow-hidden border border-white/20 shadow-2xl bg-white/5 backdrop-blur-xl">
+            <iframe
+              src="https://appointment.expeditionamerica.us/"
+              className="w-full"
+              style={{ height: "600px", border: "none" }}
+              title="Book an Appointment"
+              allow="camera; microphone; payment"
+            />
+          </div>
+        </div>
 
         {/* Footer */}
         <div className="text-center mt-6 text-xs text-slate-500">
